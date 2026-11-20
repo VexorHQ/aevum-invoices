@@ -7,10 +7,13 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { formatUnits, isHex, type Hash, type Hex } from "viem";
 import { useAccount, useConfig, useReadContract } from "wagmi";
-import { motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { easeSmooth, springSnappy, swapChild } from "@/lib/motion";
 import { readContract, signTypedData, simulateContract, waitForTransactionReceipt, writeContract } from "wagmi/actions";
-import { CheckIcon } from "@/components/Icons";
 import { Copyable } from "@/components/Copyable";
+import { DrawnCheck } from "@/components/motion/DrawnCheck";
+import { SpotlightCard } from "@/components/motion/SpotlightCard";
+import { StatusBadge } from "@/components/motion/StatusBadge";
 import { useToken } from "@/components/useToken";
 import { useNetwork } from "@/lib/network";
 import { explain } from "@/lib/errors";
@@ -210,8 +213,8 @@ export default function InvoiceDetailPage() {
           </p>
         </div>
         {status && (
-          <span className={`status ${status === "paid" ? "good" : status === "overdue" ? "warn" : ""}`} style={{ fontSize: 15 }}>
-            {status === "paid" ? "Paid" : status === "overdue" ? "Overdue" : "Open"}
+          <span style={{ fontSize: 15 }}>
+            <StatusBadge status={status} />
           </span>
         )}
       </div>
@@ -240,7 +243,7 @@ export default function InvoiceDetailPage() {
         </div>
       ) : (
         <div className="row">
-          <section className="card stack" aria-label="Invoice" style={{ flex: "1 1 340px" }}>
+          <SpotlightCard className="card stack" aria-label="Invoice" style={{ flex: "1 1 340px" }}>
             <div className="receipt-amount">
               {formatUnits(inv.amount, token.decimals)}{" "}
               <small style={{ fontSize: "0.4em", color: "var(--text-muted)" }}>{token.symbol}</small>
@@ -280,9 +283,9 @@ export default function InvoiceDetailPage() {
             {status === "overdue" && (
               <p className="fine">Past due — but still payable in full. The contract doesn&apos;t add late fees; the overdue flag is just what the due date says.</p>
             )}
-          </section>
+          </SpotlightCard>
 
-          <section className="card stack" aria-label="Payment" style={{ flex: "1.3 1 420px" }}>
+          <SpotlightCard className="card stack" aria-label="Payment" style={{ flex: "1.3 1 420px" }}>
             {status === "paid" ? (
               <>
                 <div className="notice good" role="status">
@@ -316,6 +319,7 @@ export default function InvoiceDetailPage() {
                       disabled={busy || (m.id === "gasless" && !gaslessAvailable)}
                       onClick={() => reset(m.id)}
                     >
+                      {mode === m.id && <motion.span layoutId="mode-pill" className="mode-pill" transition={springSnappy} aria-hidden="true" />}
                       <span className="mode-top">
                         {m.title}
                         <span className="tag">{m.tag}</span>
@@ -337,7 +341,7 @@ export default function InvoiceDetailPage() {
                       const active = busy && step === i;
                       return (
                         <li key={s.title} className={`step ${done ? "done" : active ? "active" : ""}`}>
-                          <div className="step-dot">{done ? <CheckIcon /> : i + 1}</div>
+                          <div className="step-dot">{done ? <DrawnCheck size={13} /> : i + 1}</div>
                           <div className="step-body">
                             <div className="step-top">
                               <span className="step-title">{s.title}</span>
@@ -396,9 +400,20 @@ export default function InvoiceDetailPage() {
                   </div>
                 )}
 
-                <button type="button" className="btn big block" disabled={ctaDisabled} onClick={onPay}>
-                  {cta}
-                </button>
+                <motion.button
+                  type="button"
+                  className="btn big block"
+                  disabled={ctaDisabled}
+                  onClick={onPay}
+                  whileTap={ctaDisabled ? undefined : { scale: 0.97 }}
+                >
+                  {busy && <span className="btn-spinner" aria-hidden="true" />}
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span key={cta} className="btn-label" variants={swapChild} initial="hidden" animate="show" exit="exit">
+                      {cta}
+                    </motion.span>
+                  </AnimatePresence>
+                </motion.button>
                 <p className="fine">
                   {mode === "gasless"
                     ? "The signature is valid for 10 minutes, for this exact amount, and only for this invoice."
@@ -406,7 +421,7 @@ export default function InvoiceDetailPage() {
                 </p>
               </>
             )}
-          </section>
+          </SpotlightCard>
         </div>
       )}
     </main>

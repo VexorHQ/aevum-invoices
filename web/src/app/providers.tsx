@@ -3,8 +3,10 @@
 import "@rainbow-me/rainbowkit/styles.css";
 import { RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig } from "motion/react";
 import { useState, type ReactNode } from "react";
 import { WagmiProvider } from "wagmi";
+import { ToastProvider } from "@/components/motion/Toast";
 import { NetworkProvider, useNetwork } from "@/lib/network";
 import { wagmiConfig } from "@/lib/wagmi";
 
@@ -26,7 +28,13 @@ export function Providers({ children }: { children: ReactNode }) {
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <NetworkProvider>
-          <RainbowKit>{children}</RainbowKit>
+          {/* MotionConfig reducedMotion="user": every Motion animation in the
+              app honors the OS prefers-reduced-motion setting. */}
+          <MotionConfig reducedMotion="user">
+            <ToastProvider>
+              <RainbowKit>{children}</RainbowKit>
+            </ToastProvider>
+          </MotionConfig>
         </NetworkProvider>
       </QueryClientProvider>
     </WagmiProvider>

@@ -3,9 +3,10 @@
 import { links, TUSD8_ADDRESS, erc20Abi } from "@aevum-kit/aevum";
 import { formatEther, formatUnits } from "viem";
 import { useAccount, useBalance, useBytecode, useReadContract, useWatchAsset } from "wagmi";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { CheckIcon, CrossIcon, WarnIcon } from "@/components/Icons";
 import { CountUp } from "@/components/CountUp";
+import { SpotlightCard } from "@/components/motion/SpotlightCard";
 import { fadeUpChild, staggerParent, useEnter } from "@/components/Reveal";
 import { useToken } from "@/components/useToken";
 import { useNetwork } from "@/lib/network";
@@ -124,9 +125,20 @@ export default function SetupPage() {
       <section className="grid-2" aria-label="Checks">
         <motion.div className="card flush" variants={staggerParent} {...enter}>
           {checks.map((c) => (
-            <motion.div className="check" key={c.title} variants={fadeUpChild}>
+            <motion.div className="check" key={c.title} variants={fadeUpChild} layout>
               <div className={`chip ${c.status}`}>
-                {c.status === "ok" ? <CheckIcon /> : c.status === "bad" ? <CrossIcon /> : c.status === "warn" ? <WarnIcon /> : null}
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={c.status}
+                    initial={{ opacity: 0, scale: 0.7 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.7 }}
+                    transition={{ duration: 0.15 }}
+                    style={{ display: "inline-flex" }}
+                  >
+                    {c.status === "ok" ? <CheckIcon /> : c.status === "bad" ? <CrossIcon /> : c.status === "warn" ? <WarnIcon /> : null}
+                  </motion.span>
+                </AnimatePresence>
               </div>
               <div className="check-body">
                 <div className="check-top">
@@ -153,7 +165,7 @@ export default function SetupPage() {
         </motion.div>
 
         <div className="stack">
-          <div className="card">
+          <SpotlightCard className="card">
             <h2>Network details</h2>
             <p className="sub">
               Already set in <code>packages/aevum/src/chain.ts</code>.
@@ -178,9 +190,9 @@ export default function SetupPage() {
                 Add {appChain.name} to wallet
               </button>
             )}
-          </div>
+          </SpotlightCard>
 
-          <div className="card info">
+          <SpotlightCard className="card info">
             <h2>Known gotchas</h2>
             <ul>
               <li>
@@ -195,7 +207,7 @@ export default function SetupPage() {
                 Judging counts activity <strong>on Aevum</strong>. Payments that settle only on another chain don&apos;t count.
               </li>
             </ul>
-          </div>
+          </SpotlightCard>
         </div>
       </section>
     </main>

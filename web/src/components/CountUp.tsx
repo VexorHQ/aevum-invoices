@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { formatUnits } from "viem";
+import { easeSmooth } from "@/lib/motion";
 
 // Counts a token amount up from 0 on first load (hero "Paid in", Setup
 // score). Later value changes (refetch) jump straight to the new value —
@@ -22,7 +23,7 @@ export function CountUp({ value, decimals, symbol }: { value: bigint; decimals: 
       mv.set(Number(value));
       return;
     }
-    const controls = animate(mv, Number(value), { duration: 0.9, ease: [0.22, 1, 0.36, 1] });
+    const controls = animate(mv, Number(value), { duration: 0.9, ease: easeSmooth });
     return () => controls.stop();
   }, [value, mv, reduce]);
 

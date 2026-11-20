@@ -9,6 +9,8 @@ import { useReadContract, usePublicClient, useTransactionReceipt } from "wagmi";
 import { useToken } from "@/components/useToken";
 import { Copyable } from "@/components/Copyable";
 import { DrawnCheckIcon } from "@/components/Icons";
+import { SpotlightCard } from "@/components/motion/SpotlightCard";
+import { StatusBadge } from "@/components/motion/StatusBadge";
 import { VivusDraw } from "@/components/VivusDraw";
 import { networkByChainId } from "@/lib/env";
 import { useNetwork } from "@/lib/network";
@@ -68,17 +70,17 @@ function ReceiptBody() {
         <h1>Invoice {invoiceLabel(invoiceId as Hex)}</h1>
       </div>
 
-      <section className="card stack receipt">
+      <SpotlightCard className="card stack receipt">
         {!invoiceAddress ? (
           <div className="stack">
-            <span className="status warn">Can&apos;t check</span>
+            <StatusBadge status="warn" label="Can't check" />
             <p style={{ color: "var(--text-muted)" }}>No Invoice contract is configured for {appChain.name} in this app.</p>
           </div>
         ) : invoice.isLoading ? (
           <p className="empty">Reading Invoice.getInvoice…</p>
         ) : invoice.isError || !inv || !invoiceExists(inv) ? (
           <div className="stack">
-            <span className="status warn">Can&apos;t check</span>
+            <StatusBadge status="warn" label="Can't check" />
             <p style={{ color: "var(--text-muted)" }}>
               {inv && !invoiceExists(inv)
                 ? `No invoice with this id exists on ${appChain.name}.`
@@ -90,7 +92,7 @@ function ReceiptBody() {
           </div>
         ) : !paid ? (
           <div className="stack">
-            <span className="status warn">Not paid</span>
+            <StatusBadge status="warn" label="Not paid" />
             <p style={{ color: "var(--text-muted)" }}>
               No payment is recorded for this invoice on {appChain.name}. If you just paid, wait a few seconds and refresh.
             </p>
@@ -106,7 +108,7 @@ function ReceiptBody() {
               </VivusDraw>
             </div>
             <div className="check-top" style={{ alignItems: "center" }}>
-              <span className="status good">Paid</span>
+              <StatusBadge status="paid" />
               <span className="fine">{inv.paidAt ? new Date(Number(inv.paidAt) * 1000).toLocaleString() : ""}</span>
             </div>
             <div className="receipt-amount">
@@ -161,7 +163,7 @@ function ReceiptBody() {
             {!tx && <ChainReceiptNote invoiceId={invoiceId as Hex} client={client} invoiceAddress={invoiceAddress} />}
           </>
         )}
-      </section>
+      </SpotlightCard>
 
       <p className="fine">
         This page trusts nothing but the chain: it calls <code>Invoice.getInvoice(invoiceId)</code> and checks the paid flag and amount.{" "}

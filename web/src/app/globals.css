@@ -104,7 +104,7 @@ main.shell { padding-top: 40px; padding-bottom: 72px; display: flex; flex-direct
 .nav { display: flex; flex-wrap: wrap; gap: 2px; flex: 1 1 auto; }
 .nav a { padding: 8px 12px; border-radius: 8px; text-decoration: none; color: var(--text-muted); font-weight: 500; transition: background-color 150ms ease, color 150ms ease; }
 .nav a:hover { color: var(--text); background: var(--surface-2); }
-.nav a[aria-current="page"] { color: var(--navy); background: var(--navy-soft); font-weight: 600; }
+.nav a[aria-current="page"] { color: var(--navy); font-weight: 600; /* background comes from the sliding .nav-pill (Round 3) */ }
 .topbar-end { display: flex; align-items: center; gap: 10px; }
 .gh-link { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line-strong); color: var(--text-muted); text-decoration: none; font-weight: 500; transition: background-color 150ms ease, color 150ms ease; }
 .gh-link:hover { color: var(--text); background: var(--surface-2); }
@@ -176,7 +176,7 @@ dl.kv dd { margin: 0; font-family: var(--font-mono); overflow-wrap: anywhere; co
   transition: background-color 150ms ease, color 150ms ease;
 }
 .filter-btn:hover { background: var(--surface-2); color: var(--text); }
-.filter-btn[aria-pressed="true"] { background: var(--navy-soft); color: var(--navy); font-weight: 600; }
+.filter-btn[aria-pressed="true"] { color: var(--navy); font-weight: 600; /* background comes from the sliding .filter-pill (Round 3) */ }
 
 input.field {
   font: inherit; font-family: var(--font-mono); font-size: 14px; color: var(--text);
@@ -227,7 +227,7 @@ input.field:disabled, textarea.field:disabled { opacity: 0.6; }
   transition: border-color 150ms ease, background-color 150ms ease;
 }
 .mode:hover { border-color: var(--navy); }
-.mode[aria-checked="true"] { border-color: var(--navy); background: var(--navy-soft); }
+.mode[aria-checked="true"] { border-color: var(--navy); /* background comes from the sliding .mode-pill (Round 3) */ }
 .mode:disabled { opacity: 0.55; cursor: not-allowed; }
 .mode-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 600; }
 .tag { font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text-muted); }
@@ -332,7 +332,7 @@ dl.faq dd { margin: 0; color: var(--text-2); line-height: 1.65; }
 .net-switch { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); }
 .net-switch button { display: inline-flex; align-items: center; gap: 7px; font: inherit; font-size: 13px; font-weight: 500; padding: 6px 11px; border: 0; border-radius: 7px; background: transparent; color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: background-color 150ms ease, color 150ms ease; }
 .net-switch button:hover { color: var(--text); }
-.net-switch button[aria-checked="true"] { background: var(--surface-2); color: var(--text); }
+.net-switch button[aria-checked="true"] { color: var(--text); /* background comes from the sliding .net-pill (Round 3) */ }
 .net-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); }
 .net-dot.aevum { background: var(--accent); }
 .net-dot.fork, .net-dot.local { background: var(--warn-dot); }
@@ -400,7 +400,7 @@ table.data tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--navy)
 /* Copyable truncated ids/hashes (fixes the Round 1 mid-string wrap). */
 .copyable { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; }
 .copyable > span, .copyable > a { white-space: nowrap; }
-.copy-btn { flex: none; font: inherit; font-size: 11px; font-weight: 600; color: var(--navy); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 6px; padding: 2px 8px; cursor: pointer; transition: background-color var(--motion-fast) var(--ease-soft), border-color var(--motion-fast) var(--ease-soft); }
+.copy-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 0; font: inherit; font-size: 11px; font-weight: 600; color: var(--navy); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer; transition: background-color var(--motion-fast) var(--ease-soft), border-color var(--motion-fast) var(--ease-soft); }
 .copy-btn:hover { border-color: var(--navy); background: var(--navy-soft); }
 
 /* Drawn-check marks (Vivus) on the receipt paid notice + new-invoice success. */
@@ -414,3 +414,117 @@ table.data tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--navy)
   .topbar .nav::-webkit-scrollbar { display: none; }
   .topbar .nav a { white-space: nowrap; }
 }
+
+/* ---------- Round 3: motion system (see .ui-craft/brief-round3.md) ----------
+   One identity, one easing family. Only transform / opacity / clip-path are
+   animated (plus a 4px blur on hero entrances only). All keyframe animations
+   below are killed by the prefers-reduced-motion block above; Motion
+   components are gated by MotionConfig reducedMotion="user" in providers.tsx. */
+
+/* A. Sticky glass header — blur + stronger hairline once scrolled.
+   Round-3 fix (screenshot review): 0.85 white + 12px blur still let large
+   dark text read through the bar while scrolling (Docs page). 0.94 + 20px
+   keeps the glass feel but kills legibility of anything underneath.
+   Round-3 fix 2 (screenshot review): the build minifier drops the UNPREFIXED
+   backdrop-filter when the -webkit- line is also present, and this Chromium
+   does not honor the -webkit- alias alone (computed backdrop-filter: none) —
+   so write ONLY the standard property and let the toolchain prefix it. */
+.topbar { position: sticky; top: 0; z-index: 50; transition: background-color var(--motion-base) var(--ease-out), border-color var(--motion-base) var(--ease-out), box-shadow var(--motion-base) var(--ease-out); }
+.topbar.scrolled { background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(20px) saturate(1.2); border-bottom-color: var(--line-strong); box-shadow: 0 1px 16px rgba(15, 23, 42, 0.07); }
+
+/* A. Shared-layout pills — the sliding background behind the active item.
+   The pill is a motion.span with layoutId; the label sits above it (z-index 1). */
+.nav a { position: relative; isolation: isolate; }
+.nav-pill { position: absolute; inset: 0; border-radius: 8px; background: var(--navy-soft); }
+.nav-label { position: relative; z-index: 1; }
+.net-switch button { position: relative; isolation: isolate; }
+.net-pill { position: absolute; inset: 2px; border-radius: 7px; background: var(--surface-2); }
+.net-dot-wrap, .net-label { position: relative; z-index: 1; display: inline-flex; align-items: center; }
+.filter-btn { position: relative; isolation: isolate; }
+.filter-pill { position: absolute; inset: 0; border-radius: 8px; background: var(--navy-soft); }
+.filter-label { position: relative; z-index: 1; }
+.mode { position: relative; isolation: isolate; }
+.mode-pill { position: absolute; inset: 0; border-radius: 10px; background: var(--navy-soft); }
+.mode > span { position: relative; z-index: 1; }
+
+/* B. Live chip shimmer — a soft light sweep across the pill every ~3s. */
+.live-chip { position: relative; overflow: hidden; }
+.live-chip::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.75) 50%, transparent 70%); transform: translateX(-130%); animation: chip-shimmer 3.2s ease-in-out infinite; pointer-events: none; }
+@keyframes chip-shimmer { 0%, 55% { transform: translateX(-130%); } 85%, 100% { transform: translateX(130%); } }
+
+/* B. Primary CTA sheen — light sweep on hover (transform only). */
+.btn.sheen { position: relative; overflow: hidden; isolation: isolate; }
+.btn.sheen::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 45%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent); transform: translateX(-220%) skewX(-20deg); transition: transform 0.55s var(--ease-out); pointer-events: none; }
+.btn.sheen:hover::after { transform: translateX(480%) skewX(-20deg); }
+
+/* B. Hero cursor glow — absolute layer behind the page head (see HeroGlow). */
+.hero-glow { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+
+/* C. Sync progress beam — bright head pulsing at the bar's leading edge. */
+.progress.sync-beam > span { position: relative; }
+.progress.sync-beam > span::after { content: ""; position: absolute; right: -3px; top: -3px; bottom: -3px; width: 26px; border-radius: 999px; background: radial-gradient(closest-side, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0)); filter: blur(1px); animation: beam-pulse 1.1s ease-in-out infinite; pointer-events: none; }
+@keyframes beam-pulse { 0%, 100% { opacity: 0.5; transform: scaleX(0.75); } 50% { opacity: 1; transform: scaleX(1.2); } }
+
+/* C. Skeleton rows — shimmer sweep is a translated gradient (transform only). */
+.skeleton-row { display: flex; gap: 16px; padding: 13px 16px; border-bottom: 1px solid var(--line); align-items: center; }
+.skeleton-row:last-child { border-bottom: 0; }
+.sk { display: block; height: 12px; border-radius: 6px; background: var(--surface-2); position: relative; overflow: hidden; flex: none; }
+.sk::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent); transform: translateX(-100%); animation: sk-shimmer 1.4s ease-in-out infinite; }
+@keyframes sk-shimmer { to { transform: translateX(100%); } }
+
+/* D. Status badges — drawn check for Paid, soft pulse for Open/Overdue. */
+.status.badge::before { content: none; }
+.badge-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--navy); flex: none; }
+.badge-dot.good { background: var(--accent); }
+.badge-dot.warn { background: var(--warn-dot); }
+.badge-dot.pulse { animation: badge-pulse 1.8s ease-in-out infinite; }
+.badge-dot.pulse.good { animation-name: badge-pulse-good; }
+.badge-dot.pulse.warn { animation-name: badge-pulse-warn; }
+@keyframes badge-pulse { 0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(30, 58, 95, 0.18); } 50% { opacity: 0.75; transform: scale(1.15); box-shadow: 0 0 0 4px rgba(30, 58, 95, 0); } }
+@keyframes badge-pulse-good { 0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.22); } 50% { opacity: 0.75; transform: scale(1.15); box-shadow: 0 0 0 4px rgba(5, 150, 105, 0); } }
+@keyframes badge-pulse-warn { 0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.22); } 50% { opacity: 0.75; transform: scale(1.15); box-shadow: 0 0 0 4px rgba(217, 119, 6, 0); } }
+.badge-check { display: inline-flex; color: var(--accent); flex: none; }
+
+/* D. Spotlight card — cursor glow in ::before (z-index -1, isolated). */
+.spotlight-card { position: relative; isolation: isolate; }
+.spotlight-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(30, 58, 95, 0.07), transparent 70%); opacity: 0; transition: opacity var(--motion-base) var(--ease-out); pointer-events: none; z-index: -1; }
+.spotlight-card:hover::before { opacity: 1; }
+.spotlight-card.card:hover, .spotlight-card.metric:hover { transform: translateY(-2px); }
+
+/* E. Button spinner — border spinner (rotation = transform only). */
+.btn-spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.35); border-top-color: #fff; animation: spin 0.7s linear infinite; flex: none; }
+.btn-spinner.dark { border-color: rgba(30, 58, 95, 0.25); border-top-color: var(--navy); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn-label { display: inline-flex; align-items: center; gap: 8px; }
+
+/* E. Toast — navy pill, bottom-center, spring entrance (see Toast.tsx). */
+.toast-viewport { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+.toast { display: inline-flex; align-items: center; gap: 8px; background: var(--navy); color: #fff; font-size: 14px; font-weight: 500; padding: 10px 16px; border-radius: 999px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25); white-space: nowrap; }
+.toast svg { color: #6ee7b7; }
+
+/* F. Activity timeline — the vertical hairline draws itself in on mount. */
+.timeline::before { transform-origin: top; animation: timeline-draw 0.7s var(--ease-out) both; }
+@keyframes timeline-draw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+/* F. Docs code copy button. */
+.code-wrap { position: relative; }
+.code-copy { position: absolute; top: 8px; right: 8px; display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 12px; font-weight: 600; color: #cbd5e1; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: background-color 150ms ease, color 150ms ease; }
+.code-copy:hover { background: rgba(255, 255, 255, 0.16); color: #fff; }
+
+/* F. Docs FAQ accordion. */
+.faq { display: flex; flex-direction: column; }
+.faq-item { border-bottom: 1px solid var(--line); }
+.faq-item:first-child { border-top: 1px solid var(--line); }
+.faq-q { width: 100%; text-align: left; font: inherit; font-weight: 600; color: var(--text); background: none; border: 0; padding: 14px 2px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.faq-q:hover { color: var(--navy); }
+.faq-chev { transition: transform var(--motion-base) var(--ease-out); color: var(--text-faint); flex: none; }
+.faq-item.open .faq-chev { transform: rotate(180deg); }
+.faq-a { padding: 0 2px 16px; color: var(--text-2); line-height: 1.65; }
+.faq-a a { color: var(--link); }
+
+/* E. Form fields — a 1px tactile lift on focus, on top of the focus ring. */
+input.field:focus-visible, textarea.field:focus-visible { transform: translateY(-1px); }
+input.field, textarea.field { transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease; }
+
+/* Round 3: the old dl.faq rules above are superseded by .faq (kept for reference). */
+

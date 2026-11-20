@@ -3,6 +3,8 @@ import { links, TUSD8_ADDRESS } from "@aevum-kit/aevum";
 import { GitHubIcon } from "@/components/Icons";
 import { DocsMotion } from "@/components/DocsMotion";
 import { DocsTagline } from "@/components/DocsTagline";
+import { CodeCopy } from "@/components/motion/CodeCopy";
+import { FaqAccordion } from "@/components/motion/FaqAccordion";
 import { repoUrl } from "@/lib/env";
 
 export const metadata: Metadata = { title: "Docs" };
@@ -25,10 +27,14 @@ const sections = [
 ];
 
 function Code({ children }: { children: string }) {
+  const text = children.trim();
   return (
-    <pre className="code">
-      <code>{children.trim()}</code>
-    </pre>
+    <div className="code-wrap">
+      <pre className="code">
+        <code>{text}</code>
+      </pre>
+      <CodeCopy text={text} />
+    </div>
   );
 }
 
@@ -466,31 +472,95 @@ pnpm example read-payments    # every Paid event, 1,000 blocks at a time
 
           <section id="faq">
             <h2>FAQ</h2>
-            <dl className="faq">
-              <dt>Do I have to use the Invoice contract?</dt>
-              <dd>No. It&apos;s an example. Keep the parts you need (<code>packages/aevum</code>, the chunked log reader, the setup checker) and replace the rest.</dd>
-              <dt>Can I use account abstraction?</dt>
-              <dd>It isn&apos;t required for this challenge, and there&apos;s no officially supported bundler or paymaster. A normal wallet plus tUSD8 payments is enough. To spare users gas, use the gasless payment in this kit (EIP-3009 with a relayer). For budgets, limits, expiry and revoke, write them into your own contract. You can deploy your own ERC-4337 setup if you want to, but the team won&apos;t support or debug it.</dd>
-              <dt>Can I use Hardhat?</dt>
-              <dd>Yes. Set <code>evmVersion: &quot;shanghai&quot;</code> in the Solidity settings, and <code>hardfork: &quot;shanghai&quot;</code> for the Hardhat network.</dd>
-              <dt>My transaction fails with invalid opcode.</dt>
-              <dd>You compiled for Cancun. See <a href="#differences">Differences from Ethereum</a>.</dd>
-              <dt>eth_getLogs errors on a big range.</dt>
-              <dd>Split it into 1,000-block chunks with <code>getLogsChunked</code>.</dd>
-              <dt>Can I deploy to Sepolia or another testnet?</dt>
-              <dd>Not for the challenge. Contracts and payments must be on Aevum testnet (<code>44005</code>).</dd>
-              <dt>Can I pay gas in tUSD8?</dt>
-              <dd>Not out of the box: there&apos;s no public paymaster that takes tUSD8 yet. Gasless payment (a relayer pays the tQDAY) is the way to spare users gas today.</dd>
-              <dt>Which explorer?</dt>
-              <dd><a href={links.explorer} target="_blank" rel="noreferrer">{links.explorer.replace("https://", "")}</a>. explorer.qday.io is mainnet.</dd>
-              <dt>Where do I ask for help?</dt>
-              <dd>
-                In the <a href={DISCORD_URL} target="_blank" rel="noreferrer">QDay Discord</a>&apos;s Builder Challenge channels (verify first
-                to see them). The team answers Monday to Friday, 10:00 to 18:00 HKT (02:00 to 10:00 UTC).
-              </dd>
-              <dt>The web faucet says &quot;address not eligible&quot;.</dt>
-              <dd>The web faucet only pays addresses that hold a little ETH, USDT or USDC on Ethereum mainnet. Use the Discord faucet instead.</dd>
-            </dl>
+            <FaqAccordion
+              items={[
+                {
+                  q: "Do I have to use the Invoice contract?",
+                  a: (
+                    <>
+                      No. It&apos;s an example. Keep the parts you need (<code>packages/aevum</code>, the chunked log reader, the setup checker)
+                      and replace the rest.
+                    </>
+                  ),
+                },
+                {
+                  q: "Can I use account abstraction?",
+                  a: (
+                    <>
+                      It isn&apos;t required for this challenge, and there&apos;s no officially supported bundler or paymaster. A normal wallet
+                      plus tUSD8 payments is enough. To spare users gas, use the gasless payment in this kit (EIP-3009 with a relayer). For
+                      budgets, limits, expiry and revoke, write them into your own contract. You can deploy your own ERC-4337 setup if you
+                      want to, but the team won&apos;t support or debug it.
+                    </>
+                  ),
+                },
+                {
+                  q: "Can I use Hardhat?",
+                  a: (
+                    <>
+                      Yes. Set <code>evmVersion: &quot;shanghai&quot;</code> in the Solidity settings, and{" "}
+                      <code>hardfork: &quot;shanghai&quot;</code> for the Hardhat network.
+                    </>
+                  ),
+                },
+                {
+                  q: "My transaction fails with invalid opcode.",
+                  a: (
+                    <>
+                      You compiled for Cancun. See <a href="#differences">Differences from Ethereum</a>.
+                    </>
+                  ),
+                },
+                {
+                  q: "eth_getLogs errors on a big range.",
+                  a: (
+                    <>
+                      Split it into 1,000-block chunks with <code>getLogsChunked</code>.
+                    </>
+                  ),
+                },
+                {
+                  q: "Can I deploy to Sepolia or another testnet?",
+                  a: <>Not for the challenge. Contracts and payments must be on Aevum testnet (<code>44005</code>).</>,
+                },
+                {
+                  q: "Can I pay gas in tUSD8?",
+                  a: (
+                    <>
+                      Not out of the box: there&apos;s no public paymaster that takes tUSD8 yet. Gasless payment (a relayer pays the tQDAY) is
+                      the way to spare users gas today.
+                    </>
+                  ),
+                },
+                {
+                  q: "Which explorer?",
+                  a: (
+                    <>
+                      <a href={links.explorer} target="_blank" rel="noreferrer">{links.explorer.replace("https://", "")}</a>. explorer.qday.io
+                      is mainnet.
+                    </>
+                  ),
+                },
+                {
+                  q: "Where do I ask for help?",
+                  a: (
+                    <>
+                      In the <a href={DISCORD_URL} target="_blank" rel="noreferrer">QDay Discord</a>&apos;s Builder Challenge channels
+                      (verify first to see them). The team answers Monday to Friday, 10:00 to 18:00 HKT (02:00 to 10:00 UTC).
+                    </>
+                  ),
+                },
+                {
+                  q: "The web faucet says “address not eligible”.",
+                  a: (
+                    <>
+                      The web faucet only pays addresses that hold a little ETH, USDT or USDC on Ethereum mainnet. Use the Discord faucet
+                      instead.
+                    </>
+                  ),
+                },
+              ]}
+            />
           </section>
 
           <p className="fine">

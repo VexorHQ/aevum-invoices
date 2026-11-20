@@ -1,10 +1,13 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { networks, repoUrl } from "@/lib/env";
+import { springSnappy } from "@/lib/motion";
 import { GitHubIcon, ReceiptMark } from "./Icons";
 import { useNetwork } from "@/lib/network";
 
@@ -21,10 +24,19 @@ export function Header() {
   const { isConnected, chainId } = useAccount();
   const { net, select, switchingTo, switchError } = useNetwork();
   const wrongNetwork = isConnected && chainId !== net.chain.id && !switchingTo;
+  // Sticky glass: once the page scrolls, the header gains backdrop blur, a
+  // stronger hairline and a soft shadow (see .topbar.scrolled in globals.css).
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <>
-      <header className="topbar">
+      <header className={`topbar${scrolled ? " scrolled" : ""}`}>
         <div className="shell">
           <Link href="/" className="brand">
             <span className="brand-mark" aria-hidden="true">
@@ -37,7 +49,8 @@ export function Header() {
               const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
               return (
                 <Link key={l.href} href={l.href} aria-current={active ? "page" : undefined}>
-                  {l.label}
+                  {active && <motion.span layoutId="nav-pill" className="nav-pill" transition={springSnappy} aria-hidden="true" />}
+                  <span className="nav-label">{l.label}</span>
                 </Link>
               );
             })}
@@ -59,8 +72,13 @@ export function Header() {
                     title={`${n.chain.name} · chain ${n.chain.id}`}
                     onClick={() => select(n.key)}
                   >
-                    <span className={`net-dot ${n.key}`} aria-hidden="true" />
-                    {n.label}
+                    {n.key === net.key && (
+                      <motion.span layoutId="net-pill" className="net-pill" transition={springSnappy} aria-hidden="true" />
+                    )}
+                    <span className="net-dot-wrap">
+                      <span className={`net-dot ${n.key}`} aria-hidden="true" />
+                    </span>
+                    <span className="net-label">{n.label}</span>
                   </button>
                 ))}
               </div>

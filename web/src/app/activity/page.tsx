@@ -6,10 +6,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { formatUnits, getAbiItem, type PublicClient } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { easeSmooth } from "@/lib/motion";
 import { useToken } from "@/components/useToken";
 import { ReceiptIcon } from "@/components/Icons";
 import { CountUp } from "@/components/CountUp";
+import { StatusBadge } from "@/components/motion/StatusBadge";
+import { SyncProgress, TimelineSkeleton } from "@/components/motion/SyncProgress";
 import { VivusDraw } from "@/components/VivusDraw";
 import { fadeUpChild, staggerParent, useEnter } from "@/components/Reveal";
 import { useNetwork } from "@/lib/network";
@@ -145,72 +148,89 @@ export default function ActivityPage() {
             </label>
           </div>
 
-          {logs.isFetching && (
-            <div style={{ padding: "16px 20px" }} aria-live="polite">
-              <div className="progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
-                <span style={{ width: `${progress}%` }} />
-              </div>
-              <p className="fine" style={{ marginTop: 8 }}>
-                Scanning {windowSize.toLocaleString("en-US")} blocks, 1,000 at a time… {progress}%
-              </p>
-            </div>
-          )}
-
           {logs.error && <p className="empty">Couldn&apos;t read events: {(logs.error as Error).message}</p>}
 
-          {logs.data && logs.data.items.length === 0 && !logs.isFetching && (
-            <div className="empty">
-              <VivusDraw className="motif">
-                <ReceiptIcon />
-              </VivusDraw>
-              <p>
-                No invoice activity in blocks {logs.data.from.toString()}–{logs.data.head.toString()}.{" "}
-                <Link href="/invoices/new">Create an invoice</Link>.
-              </p>
-            </div>
-          )}
-
-          {logs.data && logs.data.items.length > 0 && (
-            <motion.ul className="timeline" variants={staggerParent} {...enter} key={`${windowSize.toString()}-${onlyMine}`}>
-              {logs.data.items.map((l) => (
-                <motion.li key={l.key} className="tl-item" variants={fadeUpChild}>
-                  <span className={`tl-dot ${l.kind}`} aria-hidden="true" />
-                  <div className="tl-body">
-                    <div className="tl-top">
-                      <span className={`status ${l.kind === "paid" ? "good" : ""}`}>{l.kind === "paid" ? "Paid" : "Created"}</span>
-                      <Link href={`/invoices/${l.invoiceId}`} className="mono">
-                        {invoiceLabel(l.invoiceId)}
-                      </Link>
-                      <span className="tl-amount num">
-                        {formatUnits(l.amount, token.decimals)} {token.symbol}
-                      </span>
+          <AnimatePresence mode="wait">
+            {!logs.data && logs.isFetching ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25, ease: easeSmooth }}
+              >
+                <div style={{ padding: "16px 20px" }}>
+                  <SyncProgress progress={progress} label={`Scanning ${windowSize.toLocaleString("en-US")} blocks, 1,000 at a time…`} />
+                </div>
+                <TimelineSkeleton />
+              </motion.div>
+            ) : logs.data && logs.data.items.length === 0 && !logs.isFetching ? (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25, ease: easeSmooth }}
+              >
+                <div className="empty">
+                  <VivusDraw className="motif">
+                    <ReceiptIcon />
+                  </VivusDraw>
+                  <p>
+                    No invoice activity in blocks {logs.data.from.toString()}–{logs.data.head.toString()}.{" "}
+                    <Link href="/invoices/new">Create an invoice</Link>.
+                  </p>
+                </div>
+              </motion.div>
+            ) : logs.data && logs.data.items.length > 0 ? (
+              <motion.ul
+                key={`${windowSize.toString()}-${onlyMine}`}
+                className="timeline"
+                variants={staggerParent}
+                {...enter}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25, ease: easeSmooth }}
+              >
+                {logs.data.items.map((l) => (
+                  <motion.li key={l.key} className="tl-item" variants={fadeUpChild}>
+                    <span className={`tl-dot ${l.kind}`} aria-hidden="true" />
+                    <div className="tl-body">
+                      <div className="tl-top">
+                        <StatusBadge status={l.kind === "paid" ? "paid" : "created"} />
+                        <Link href={`/invoices/${l.invoiceId}`} className="mono">
+                          {invoiceLabel(l.invoiceId)}
+                        </Link>
+                        <span className="tl-amount num">
+                          {formatUnits(l.amount, token.decimals)} {token.symbol}
+                        </span>
+                      </div>
+                      <p className="tl-meta fine">
+                        {l.kind === "paid" ? (
+                          <>from <span className="mono">{short(l.payer ?? "")}</span></>
+                        ) : (
+                          <>by <span className="mono">{short(l.merchant ?? "")}</span></>
+                        )}{" "}
+                        · block {l.blockNumber.toString()} ·{" "}
+                        {l.kind === "paid" ? (
+                          <Link href={`/receipts/${l.invoiceId}?tx=${l.tx}&chain=${appChain.id}`}>Receipt ↗</Link>
+                        ) : (
+                          <Link href={`/invoices/${l.invoiceId}`}>Open ↗</Link>
+                        )}
+                        {hasExplorer && l.tx && (
+                          <>
+                            {" · "}
+                            <a href={txUrl(l.tx)} target="_blank" rel="noreferrer">
+                              Tx ↗
+                            </a>
+                          </>
+                        )}
+                      </p>
                     </div>
-                    <p className="tl-meta fine">
-                      {l.kind === "paid" ? (
-                        <>from <span className="mono">{short(l.payer ?? "")}</span></>
-                      ) : (
-                        <>by <span className="mono">{short(l.merchant ?? "")}</span></>
-                      )}{" "}
-                      · block {l.blockNumber.toString()} ·{" "}
-                      {l.kind === "paid" ? (
-                        <Link href={`/receipts/${l.invoiceId}?tx=${l.tx}&chain=${appChain.id}`}>Receipt ↗</Link>
-                      ) : (
-                        <Link href={`/invoices/${l.invoiceId}`}>Open ↗</Link>
-                      )}
-                      {hasExplorer && l.tx && (
-                        <>
-                          {" · "}
-                          <a href={txUrl(l.tx)} target="_blank" rel="noreferrer">
-                            Tx ↗
-                          </a>
-                        </>
-                      )}
-                    </p>
-                  </div>
-                </motion.li>
-              ))}
-            </motion.ul>
-          )}
+                  </motion.li>
+                ))}
+              </motion.ul>
+            ) : null}
+          </AnimatePresence>
         </section>
       )}
     </main>

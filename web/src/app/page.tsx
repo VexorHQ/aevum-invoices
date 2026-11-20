@@ -6,13 +6,18 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { formatUnits, getAbiItem, type Hex, type PublicClient } from "viem";
 import { usePublicClient } from "wagmi";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { blurUpChild, easeSmooth, springSnappy, staggerParent } from "@/lib/motion";
 import { useToken } from "@/components/useToken";
 import { ReceiptIcon } from "@/components/Icons";
 import { CountUp } from "@/components/CountUp";
 import { HeroParticles } from "@/components/HeroParticles";
+import { HeroGlow } from "@/components/motion/HeroGlow";
+import { SpotlightCard } from "@/components/motion/SpotlightCard";
+import { StatusBadge } from "@/components/motion/StatusBadge";
+import { InvoiceSkeleton, SyncProgress } from "@/components/motion/SyncProgress";
 import { VivusDraw } from "@/components/VivusDraw";
-import { fadeUpChild, staggerParent, useEnter } from "@/components/Reveal";
+import { fadeUpChild, useEnter } from "@/components/Reveal";
 import { useNetwork } from "@/lib/network";
 import { formatDueDate, invoiceLabel, parseInvoiceData, short, statusOf, type InvoiceData, type InvoiceStatus } from "@/lib/invoice";
 
@@ -111,9 +116,10 @@ export default function InvoicesPage() {
     <main className="shell">
       <div className="hero-band">
         <HeroParticles />
-        <div className="page-head">
+        <HeroGlow />
+        <motion.div className="page-head" variants={staggerParent} {...enter}>
           <div>
-            <div className="head-eyebrow-row">
+            <motion.div className="head-eyebrow-row" variants={blurUpChild}>
               <p className="eyebrow">Aevum testnet · tUSD8</p>
               {invoices.data && (
                 <span className="live-chip">
@@ -121,17 +127,21 @@ export default function InvoicesPage() {
                   Live · block {invoices.data.head.toString()}
                 </span>
               )}
-            </div>
-            <h1>Invoices</h1>
-            <p className="lede">
+            </motion.div>
+            <motion.h1 variants={blurUpChild}>Invoices</motion.h1>
+            <motion.p className="lede" variants={blurUpChild}>
               Bills you send as a freelancer or small shop, settled on-chain in tUSD8. A client pays the exact amount — or signs once and a
               relayer submits it, so they need no gas.
-            </p>
+            </motion.p>
           </div>
-          <Link className="btn" href="/invoices/new">
-            New invoice
-          </Link>
-        </div>
+          <motion.div variants={blurUpChild}>
+            <motion.span whileTap={{ scale: 0.97 }} style={{ display: "inline-flex" }}>
+              <Link className="btn sheen" href="/invoices/new">
+                New invoice
+              </Link>
+            </motion.span>
+          </motion.div>
+        </motion.div>
       </div>
 
       {!invoiceAddress ? (
@@ -144,7 +154,7 @@ export default function InvoicesPage() {
         <>
           {invoices.data && (
             <motion.div className="metrics" aria-label="Invoice totals" variants={staggerParent} {...enter}>
-              <motion.div className="metric hero" variants={fadeUpChild}>
+              <SpotlightCard className="metric hero" variants={fadeUpChild}>
                 <div className="metric-label">Paid in</div>
                 <div className="metric-value">
                   <CountUp value={paidTotal} decimals={token.decimals} symbol={token.symbol} />
@@ -155,8 +165,8 @@ export default function InvoicesPage() {
                 <div className="share" title={`${paidShare}% of invoiced value settled`}>
                   <span style={{ width: `${paidShare}%` }} />
                 </div>
-              </motion.div>
-              <motion.div className="metric" variants={fadeUpChild}>
+              </SpotlightCard>
+              <SpotlightCard className="metric" variants={fadeUpChild}>
                 <div className="metric-label">Still open</div>
                 <div className="metric-value">
                   {formatUnits(openTotal, token.decimals)} <small>{token.symbol}</small>
@@ -167,17 +177,17 @@ export default function InvoicesPage() {
                 <div className="share navy" title={`${openShare}% of invoiced value still open`}>
                   <span style={{ width: `${openShare}%` }} />
                 </div>
-              </motion.div>
-              <motion.div className="metric" variants={fadeUpChild}>
+              </SpotlightCard>
+              <SpotlightCard className="metric" variants={fadeUpChild}>
                 <div className="metric-label">Open invoices</div>
                 <div className="metric-value">{counts.open}</div>
                 <div className="metric-note">awaiting payment</div>
-              </motion.div>
-              <motion.div className="metric" variants={fadeUpChild}>
+              </SpotlightCard>
+              <SpotlightCard className="metric" variants={fadeUpChild}>
                 <div className="metric-label">Overdue</div>
                 <div className="metric-value">{counts.overdue}</div>
                 <div className="metric-note">past due, still payable</div>
-              </motion.div>
+              </SpotlightCard>
             </motion.div>
           )}
           <section className="card flush" aria-label="Invoices">
@@ -192,86 +202,105 @@ export default function InvoicesPage() {
                 aria-pressed={filter === f.id}
                 onClick={() => setFilter(f.id)}
               >
-                {f.label} · {counts[f.id]}
+                {filter === f.id && <motion.span layoutId="filter-pill" className="filter-pill" transition={springSnappy} aria-hidden="true" />}
+                <span className="filter-label">
+                  {f.label} · {counts[f.id]}
+                </span>
               </button>
             ))}
           </div>
 
-          {invoices.isFetching && (
-            <div style={{ padding: "16px 20px" }} aria-live="polite">
-              <div className="progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
-                <span style={{ width: `${progress}%` }} />
-              </div>
-              <p className="fine" style={{ marginTop: 8 }}>
-                Reading invoice events from the chain, 1,000 blocks at a time… {progress}%
-              </p>
-            </div>
-          )}
-
           {invoices.error && <p className="empty">Couldn&apos;t read invoices: {(invoices.error as Error).message}</p>}
 
-          {invoices.data && rows.length === 0 && !invoices.isFetching && (
-            <div className="empty">
-              <VivusDraw className="motif">
-                <ReceiptIcon />
-              </VivusDraw>
-              <p>
-                No invoices yet in blocks {invoices.data.from.toString()}–{invoices.data.head.toString()}.{" "}
-                <Link href="/invoices/new">Send your first one</Link>.
-              </p>
-            </div>
-          )}
-
-          {shown.length > 0 && (
-            <div className="table-wrap">
-              <table className="data">
-                <thead>
-                  <tr>
-                    <th>Invoice</th>
-                    <th>Merchant</th>
-                    <th className="right">Amount</th>
-                    <th>Status</th>
-                    <th>Due</th>
-                    <th>Memo</th>
-                    <th>Links</th>
-                  </tr>
-                </thead>
-                <motion.tbody key={filter} variants={staggerParent} {...enter}>
-                  {shown.map((r) => {
-                    const status = statusOf(r.inv);
-                    return (
-                      <motion.tr key={r.id} variants={fadeUpChild}>
-                        <td className="mono">
-                          <Link href={`/invoices/${r.id}`}>{invoiceLabel(r.id)}</Link>
-                        </td>
-                        <td className="mono">{short(r.inv.merchant)}</td>
-                        <td className="right num">
-                          {formatUnits(r.inv.amount, token.decimals)} {token.symbol}
-                        </td>
-                        <td>
-                          <span className={`status ${status === "paid" ? "good" : status === "overdue" ? "warn" : ""}`}>
-                            {status === "paid" ? "Paid" : status === "overdue" ? "Overdue" : "Open"}
-                          </span>
-                        </td>
-                        <td>{formatDueDate(r.inv.dueDate)}</td>
-                        <td style={{ whiteSpace: "normal", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {r.inv.memo || "—"}
-                        </td>
-                        <td style={{ display: "flex", gap: 14 }}>
-                          <Link href={`/invoices/${r.id}`}>{status === "paid" ? "Receipt" : "Pay"}</Link>
-                          {status === "paid" && r.paidTx && hasExplorer && (
-                            <a href={txUrl(r.paidTx)} target="_blank" rel="noreferrer">
-                              Tx
-                            </a>
-                          )}
-                        </td>
-                      </motion.tr>
-                    );
-                  })}
-                </motion.tbody>
-              </table>
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {!invoices.data && invoices.isFetching ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25, ease: easeSmooth }}
+              >
+                <div style={{ padding: "16px 20px" }}>
+                  <SyncProgress progress={progress} label="Reading invoice events from the chain, 1,000 blocks at a time…" />
+                </div>
+                <InvoiceSkeleton />
+              </motion.div>
+            ) : invoices.data && rows.length === 0 && !invoices.isFetching ? (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25, ease: easeSmooth }}
+              >
+                <div className="empty">
+                  <VivusDraw className="motif">
+                    <ReceiptIcon />
+                  </VivusDraw>
+                  <p>
+                    No invoices yet in blocks {invoices.data.from.toString()}–{invoices.data.head.toString()}.{" "}
+                    <Link href="/invoices/new">Send your first one</Link>.
+                  </p>
+                </div>
+              </motion.div>
+            ) : shown.length > 0 ? (
+              <motion.div
+                key="table"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25, ease: easeSmooth }}
+              >
+                <div className="table-wrap">
+                  <table className="data">
+                    <thead>
+                      <tr>
+                        <th>Invoice</th>
+                        <th>Merchant</th>
+                        <th className="right">Amount</th>
+                        <th>Status</th>
+                        <th>Due</th>
+                        <th>Memo</th>
+                        <th>Links</th>
+                      </tr>
+                    </thead>
+                    <motion.tbody key={filter} variants={staggerParent} {...enter}>
+                      {shown.map((r) => {
+                        const status = statusOf(r.inv);
+                        return (
+                          <motion.tr key={r.id} variants={fadeUpChild}>
+                            <td className="mono">
+                              <Link href={`/invoices/${r.id}`}>{invoiceLabel(r.id)}</Link>
+                            </td>
+                            <td className="mono">{short(r.inv.merchant)}</td>
+                            <td className="right num">
+                              {formatUnits(r.inv.amount, token.decimals)} {token.symbol}
+                            </td>
+                            <td>
+                              <StatusBadge status={status} />
+                            </td>
+                            <td>{formatDueDate(r.inv.dueDate)}</td>
+                            <td style={{ whiteSpace: "normal", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {r.inv.memo || "—"}
+                            </td>
+                            <td style={{ display: "flex", gap: 14 }}>
+                              <Link href={`/invoices/${r.id}`}>{status === "paid" ? "Receipt" : "Pay"}</Link>
+                              {status === "paid" && r.paidTx && hasExplorer && (
+                                <a href={txUrl(r.paidTx)} target="_blank" rel="noreferrer">
+                                  Tx
+                                </a>
+                              )}
+                            </td>
+                          </motion.tr>
+                        );
+                      })}
+                    </motion.tbody>
+                  </table>
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </section>
         </>
       )}

@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { isAddress, parseEventLogs, parseUnits, type Hash, type Hex } from "viem";
 import { useAccount, useConfig } from "wagmi";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { easeSmooth, swapChild } from "@/lib/motion";
 import { simulateContract, waitForTransactionReceipt, writeContract } from "wagmi/actions";
 import { useToken } from "@/components/useToken";
 import { Copyable } from "@/components/Copyable";
@@ -251,16 +252,31 @@ export default function NewInvoicePage() {
             <p className="field-hint">What the payment is for. Stored on-chain with the invoice.</p>
           </motion.div>
 
-          {error && (
-            <div className="notice bad" role="alert">
-              <strong>Couldn&apos;t create the invoice</strong>
-              <span>{error}</span>
-            </div>
-          )}
+          <AnimatePresence initial={false}>
+            {error && (
+              <motion.div
+                key="error"
+                className="notice bad"
+                role="alert"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25, ease: easeSmooth }}
+              >
+                <strong>Couldn&apos;t create the invoice</strong>
+                <span>{error}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <button type="submit" className="btn big block" disabled={ctaDisabled}>
-            {cta}
-          </button>
+          <motion.button type="submit" className="btn big block" disabled={ctaDisabled} whileTap={ctaDisabled ? undefined : { scale: 0.97 }}>
+            {busy && <span className="btn-spinner" aria-hidden="true" />}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span key={cta} className="btn-label" variants={swapChild} initial="hidden" animate="show" exit="exit">
+                {cta}
+              </motion.span>
+            </AnimatePresence>
+          </motion.button>
           <p className="fine">Creating an invoice costs a little gas in tQDAY. Your client pays the invoice itself — in tUSD8, to your wallet.</p>
         </motion.form>
       )}

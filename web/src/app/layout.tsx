@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import type { ReactNode } from "react";
 import { Header } from "@/components/Header";
+import { PageTransition } from "@/components/motion/PageTransition";
 import { Providers } from "./providers";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import "./globals.css";
@@ -21,7 +22,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Providers>
           <SmoothScroll />
           <Header />
-          {children}
+          <PageTransition>{children}</PageTransition>
         </Providers>
       </body>
     </html>
