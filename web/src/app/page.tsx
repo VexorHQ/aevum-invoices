@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import { formatUnits, getAbiItem, type Hex, type PublicClient } from "viem";
 import { usePublicClient } from "wagmi";
 import { useToken } from "@/components/useToken";
+import { ReceiptIcon } from "@/components/Icons";
 import { useNetwork } from "@/lib/network";
 import { formatDueDate, invoiceLabel, parseInvoiceData, short, statusOf, type InvoiceData, type InvoiceStatus } from "@/lib/invoice";
 
@@ -94,6 +95,8 @@ export default function InvoicesPage() {
   }, [rows]);
   const shown = filter === "all" ? rows : rows.filter((r) => statusOf(r.inv) === filter);
   const openTotal = rows.filter((r) => statusOf(r.inv) !== "paid").reduce((s, r) => s + r.inv.amount, 0n);
+  const paidTotal = rows.filter((r) => statusOf(r.inv) === "paid").reduce((s, r) => s + r.inv.amount, 0n);
+  const unpaidCount = counts.open + counts.overdue;
 
   return (
     <main className="shell">
@@ -118,7 +121,40 @@ export default function InvoicesPage() {
           <Link href="/setup">Setup</Link> page checks the rest.
         </div>
       ) : (
-        <section className="card flush" aria-label="Invoices">
+        <>
+          {invoices.data && (
+            <div className="metrics" aria-label="Invoice totals">
+              <div className="metric hero">
+                <div className="metric-label">Paid in</div>
+                <div className="metric-value">
+                  {formatUnits(paidTotal, token.decimals)} <small>{token.symbol}</small>
+                </div>
+                <div className="metric-note">
+                  {counts.paid} invoice{counts.paid === 1 ? "" : "s"} settled on-chain
+                </div>
+              </div>
+              <div className="metric">
+                <div className="metric-label">Still open</div>
+                <div className="metric-value">
+                  {formatUnits(openTotal, token.decimals)} <small>{token.symbol}</small>
+                </div>
+                <div className="metric-note">
+                  across {unpaidCount} unpaid invoice{unpaidCount === 1 ? "" : "s"}
+                </div>
+              </div>
+              <div className="metric">
+                <div className="metric-label">Open invoices</div>
+                <div className="metric-value">{counts.open}</div>
+                <div className="metric-note">awaiting payment</div>
+              </div>
+              <div className="metric">
+                <div className="metric-label">Overdue</div>
+                <div className="metric-value">{counts.overdue}</div>
+                <div className="metric-note">past due, still payable</div>
+              </div>
+            </div>
+          )}
+          <section className="card flush" aria-label="Invoices">
           <div
             style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", padding: "16px 20px", borderBottom: "1px solid var(--line)" }}
           >
@@ -126,20 +162,13 @@ export default function InvoicesPage() {
               <button
                 key={f.id}
                 type="button"
-                className={`btn small ${filter === f.id ? "" : "secondary"}`}
+                className="filter-btn"
                 aria-pressed={filter === f.id}
                 onClick={() => setFilter(f.id)}
               >
                 {f.label} · {counts[f.id]}
               </button>
             ))}
-            <span style={{ marginLeft: "auto", fontSize: 14, color: "var(--text-muted)" }}>
-              {counts.open + counts.overdue > 0
-                ? `${formatUnits(openTotal, token.decimals)} ${token.symbol} still open`
-                : rows.length > 0
-                  ? "Nothing outstanding"
-                  : ""}
-            </span>
           </div>
 
           {invoices.isFetching && (
@@ -156,10 +185,15 @@ export default function InvoicesPage() {
           {invoices.error && <p className="empty">Couldn&apos;t read invoices: {(invoices.error as Error).message}</p>}
 
           {invoices.data && rows.length === 0 && !invoices.isFetching && (
-            <p className="empty">
-              No invoices yet in blocks {invoices.data.from.toString()}–{invoices.data.head.toString()}.{" "}
-              <Link href="/invoices/new">Send your first one</Link>.
-            </p>
+            <div className="empty">
+              <span className="motif" aria-hidden="true">
+                <ReceiptIcon />
+              </span>
+              <p>
+                No invoices yet in blocks {invoices.data.from.toString()}–{invoices.data.head.toString()}.{" "}
+                <Link href="/invoices/new">Send your first one</Link>.
+              </p>
+            </div>
           )}
 
           {shown.length > 0 && (
@@ -189,7 +223,7 @@ export default function InvoicesPage() {
                           {formatUnits(r.inv.amount, token.decimals)} {token.symbol}
                         </td>
                         <td>
-                          <span className={`status-pill ${status === "paid" ? "good" : status === "overdue" ? "warn" : ""}`}>
+                          <span className={`status ${status === "paid" ? "good" : status === "overdue" ? "warn" : ""}`}>
                             {status === "paid" ? "Paid" : status === "overdue" ? "Overdue" : "Open"}
                           </span>
                         </td>
@@ -213,6 +247,7 @@ export default function InvoicesPage() {
             </div>
           )}
         </section>
+        </>
       )}
     </main>
   );

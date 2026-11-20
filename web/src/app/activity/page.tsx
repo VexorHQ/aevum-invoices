@@ -7,6 +7,7 @@ import { useState } from "react";
 import { formatUnits, getAbiItem, type PublicClient } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
 import { useToken } from "@/components/useToken";
+import { ReceiptIcon } from "@/components/Icons";
 import { useNetwork } from "@/lib/network";
 import { invoiceLabel, short } from "@/lib/invoice";
 
@@ -124,7 +125,7 @@ export default function ActivityPage() {
               <button
                 key={w.label}
                 type="button"
-                className={`btn small ${windowSize === w.blocks ? "" : "secondary"}`}
+                className="filter-btn"
                 aria-pressed={windowSize === w.blocks}
                 onClick={() => setWindowSize(w.blocks)}
               >
@@ -151,10 +152,15 @@ export default function ActivityPage() {
           {logs.error && <p className="empty">Couldn&apos;t read events: {(logs.error as Error).message}</p>}
 
           {logs.data && logs.data.items.length === 0 && !logs.isFetching && (
-            <p className="empty">
-              No invoice activity in blocks {logs.data.from.toString()}–{logs.data.head.toString()}.{" "}
-              <Link href="/invoices/new">Create an invoice</Link>.
-            </p>
+            <div className="empty">
+              <span className="motif" aria-hidden="true">
+                <ReceiptIcon />
+              </span>
+              <p>
+                No invoice activity in blocks {logs.data.from.toString()}–{logs.data.head.toString()}.{" "}
+                <Link href="/invoices/new">Create an invoice</Link>.
+              </p>
+            </div>
           )}
 
           {logs.data && logs.data.items.length > 0 && (
@@ -174,7 +180,7 @@ export default function ActivityPage() {
                   {logs.data.items.map((l) => (
                     <tr key={l.key}>
                       <td>
-                        <span className={`status-pill ${l.kind === "paid" ? "good" : ""}`}>{l.kind === "paid" ? "Paid" : "Created"}</span>
+                        <span className={`status ${l.kind === "paid" ? "good" : ""}`}>{l.kind === "paid" ? "Paid" : "Created"}</span>
                       </td>
                       <td className="mono">
                         <Link href={`/invoices/${l.invoiceId}`}>{invoiceLabel(l.invoiceId)}</Link>

@@ -65,17 +65,17 @@ function ReceiptBody() {
         <h1>Invoice {invoiceLabel(invoiceId as Hex)}</h1>
       </div>
 
-      <section className="card stack">
+      <section className="card stack receipt">
         {!invoiceAddress ? (
           <div className="stack">
-            <span className="status-pill warn">Can&apos;t check</span>
+            <span className="status warn">Can&apos;t check</span>
             <p style={{ color: "var(--text-muted)" }}>No Invoice contract is configured for {appChain.name} in this app.</p>
           </div>
         ) : invoice.isLoading ? (
           <p className="empty">Reading Invoice.getInvoice…</p>
         ) : invoice.isError || !inv || !invoiceExists(inv) ? (
           <div className="stack">
-            <span className="status-pill warn">Can&apos;t check</span>
+            <span className="status warn">Can&apos;t check</span>
             <p style={{ color: "var(--text-muted)" }}>
               {inv && !invoiceExists(inv)
                 ? `No invoice with this id exists on ${appChain.name}.`
@@ -87,7 +87,7 @@ function ReceiptBody() {
           </div>
         ) : !paid ? (
           <div className="stack">
-            <span className="status-pill warn">Not paid</span>
+            <span className="status warn">Not paid</span>
             <p style={{ color: "var(--text-muted)" }}>
               No payment is recorded for this invoice on {appChain.name}. If you just paid, wait a few seconds and refresh.
             </p>
@@ -98,7 +98,7 @@ function ReceiptBody() {
         ) : (
           <>
             <div className="check-top" style={{ alignItems: "center" }}>
-              <span className="status-pill good">Paid</span>
+              <span className="status good">Paid</span>
               <span className="fine">{inv.paidAt ? new Date(Number(inv.paidAt) * 1000).toLocaleString() : ""}</span>
             </div>
             <div className="receipt-amount">

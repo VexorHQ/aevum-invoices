@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAccount } from "wagmi";
 import { networks, repoUrl } from "@/lib/env";
-import { GitHubIcon } from "./Icons";
+import { GitHubIcon, ReceiptMark } from "./Icons";
 import { useNetwork } from "@/lib/network";
 
 const links = [
@@ -27,7 +27,9 @@ export function Header() {
       <header className="topbar">
         <div className="shell">
           <Link href="/" className="brand">
-            <span className="brand-mark" aria-hidden="true" />
+            <span className="brand-mark" aria-hidden="true">
+              <ReceiptMark />
+            </span>
             <span className="brand-name">Aevum Invoices</span>
           </Link>
           <nav className="nav" aria-label="Main">

@@ -207,7 +207,7 @@ export default function InvoiceDetailPage() {
           </p>
         </div>
         {status && (
-          <span className={`status-pill ${status === "paid" ? "good" : status === "overdue" ? "warn" : ""}`} style={{ fontSize: 15, padding: "8px 16px" }}>
+          <span className={`status ${status === "paid" ? "good" : status === "overdue" ? "warn" : ""}`} style={{ fontSize: 15 }}>
             {status === "paid" ? "Paid" : status === "overdue" ? "Overdue" : "Open"}
           </span>
         )}
