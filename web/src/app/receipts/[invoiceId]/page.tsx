@@ -112,7 +112,7 @@ function ReceiptBody() {
               <span className="fine">{inv.paidAt ? new Date(Number(inv.paidAt) * 1000).toLocaleString() : ""}</span>
             </div>
             <div className="receipt-amount">
-              {formatUnits(inv.amount, token.decimals)} <small style={{ fontSize: "0.4em", color: "var(--text-muted)" }}>{token.symbol}</small>
+              {formatUnits(inv.amount, token.decimals)} <small style={{ fontSize: "12px", color: "var(--text-muted)" }}>{token.symbol}</small>
             </div>
             <dl className="kv">
               <dt>Invoice id</dt>
@@ -181,6 +181,14 @@ function ChainReceiptNote({ invoiceId, client, invoiceAddress }: { invoiceId: He
   const { net } = useNetwork();
   const [tx, setTx] = useState<Hex | null>(null);
   const [done, setDone] = useState(false);
+  // Round 4: the lookup usually resolves in under a second, so the "Looking
+  // up…" line used to flash for one frame and vanish. Only show it once the
+  // scan has actually been running a while — display-only, the scan is unchanged.
+  const [showWait, setShowWait] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShowWait(true), 600);
+    return () => clearTimeout(t);
+  }, []);
   useEffect(() => {
     if (!client || !invoiceAddress) return;
     let cancelled = false;
@@ -206,7 +214,7 @@ function ChainReceiptNote({ invoiceId, client, invoiceAddress }: { invoiceId: He
       cancelled = true;
     };
   }, [client, invoiceAddress, invoiceId, net.deployBlock]);
-  if (!done) return <p className="fine">Looking up the payment transaction…</p>;
+  if (!done) return showWait ? <p className="fine">Looking up the payment transaction…</p> : null;
   if (!tx) return null;
   return (
     <p className="fine">

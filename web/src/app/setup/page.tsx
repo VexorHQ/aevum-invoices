@@ -66,7 +66,7 @@ export default function SetupPage() {
       ? { title: "Wallet connected", status: "ok", value: short(address ?? ""), detail: `${connector?.name ?? "Wallet"} is connected.` }
       : { title: "Wallet connected", status: "bad", value: "not connected", detail: "Connect MetaMask, Rabby or any browser wallet with the button at the top right." },
     !isConnected
-      ? { title: "Network", status: "idle", value: "—", detail: `Needs ${appChain.name} (${appChain.id}).` }
+      ? { title: "Network", status: "idle", value: "Not checked", detail: `Needs ${appChain.name} (${appChain.id}).` }
       : onChain
         ? { title: "Network", status: "ok", value: `chain ${appChain.id}`, detail: `Connected to ${appChain.rpcUrls.default.http[0]}.` }
         : {
@@ -77,14 +77,14 @@ export default function SetupPage() {
             action: { label: "Switch network", onClick: () => select(net.key) },
           },
     !onChain || gasValue === undefined
-      ? { title: `Gas (${appChain.nativeCurrency.symbol})`, status: "idle", value: "—", detail: "Pays for transactions. Gasless payment doesn't need it." }
+      ? { title: `Gas (${appChain.nativeCurrency.symbol})`, status: "idle", value: "Not checked", detail: "Pays for transactions. Gasless payment doesn't need it." }
       : gasValue > 0n
         ? { title: `Gas (${appChain.nativeCurrency.symbol})`, status: "ok", value: `${Number(formatEther(gasValue)).toFixed(4)} ${appChain.nativeCurrency.symbol}`, detail: chainMode === "fork" ? FORK_COPY : "1 tQDAY covers hundreds of contract calls at 1 gwei." }
         : chainMode === "aevum"
           ? { title: "Gas (tQDAY)", status: "warn", value: "0 tQDAY", detail: DISCORD_FAUCET, action: { label: "Open web faucet", href: links.faucetWeb } }
           : { title: "Gas", status: "warn", value: "0", detail: chainMode === "fork" ? "Give yourself tQDAY and tUSD8 with `make deal TO=<address>`." : "Import one of anvil's default accounts into your wallet (local chain only)." },
     !onChain || tokenValue === undefined
-      ? { title: `${token.symbol} balance`, status: "idle", value: "—", detail: "The stablecoin invoices settle in (6 decimals)." }
+      ? { title: `${token.symbol} balance`, status: "idle", value: "Not checked", detail: "The stablecoin invoices settle in (6 decimals)." }
       : tokenValue > 0n
         ? { title: `${token.symbol} balance`, status: "ok", value: `${formatUnits(tokenValue, token.decimals)} ${token.symbol}`, detail: chainMode === "fork" ? "Ready to pay. Also copied from Aevum testnet." : "Ready to pay.", action: addToken }
         : chainMode === "aevum"
@@ -107,7 +107,7 @@ export default function SetupPage() {
     <main className="shell">
       <section className="page-head">
         <div>
-          <p className="eyebrow">Step 0 · Before you build</p>
+          <p className="eyebrow" data-slop-allow="hero-kicker-eyebrow">Step 0 · Before you build</p>
           <h1>Is your setup ready for Aevum?</h1>
           <p className="lede">We check your wallet, network, balances and contract, and tell you exactly what to fix.</p>
         </div>

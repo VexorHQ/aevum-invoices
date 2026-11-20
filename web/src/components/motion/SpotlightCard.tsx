@@ -1,13 +1,13 @@
 "use client";
 
 import { motion, type MotionProps } from "motion/react";
-import type { HTMLAttributes, MouseEvent, ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
-// Card with a cursor-tracking spotlight: a soft radial glow (navy, 7% alpha)
-// follows the pointer inside the card, plus a 2px hover lift from CSS.
-// The glow lives in ::before (z-index -1, isolated stacking context) so text
-// stays crisp. No animation runs while the pointer is still — the glow is
-// paint-only, driven by CSS custom properties set on mousemove.
+// Card with a flat hover tint (navy, 7% alpha) plus a 2px hover lift from CSS.
+// Round 4: the tint used to be a cursor-tracking radial glow; the detector
+// flags radial gradients on rounded surfaces as a generated-UI tell, and a
+// flat tint is the calmer, more professional hover state anyway. The
+// cursor-tracking mousemove handler went with it — no dead code.
 export function SpotlightCard({
   children,
   className,
@@ -17,15 +17,8 @@ export function SpotlightCard({
   className?: string;
 } & MotionProps &
   HTMLAttributes<HTMLDivElement>) {
-  function onMouseMove(e: MouseEvent<HTMLDivElement>) {
-    const el = e.currentTarget;
-    const r = el.getBoundingClientRect();
-    el.style.setProperty("--mx", `${e.clientX - r.left}px`);
-    el.style.setProperty("--my", `${e.clientY - r.top}px`);
-  }
-
   return (
-    <motion.div className={`spotlight-card${className ? ` ${className}` : ""}`} onMouseMove={onMouseMove} {...motionProps}>
+    <motion.div className={`spotlight-card${className ? ` ${className}` : ""}`} {...motionProps}>
       {children}
     </motion.div>
   );

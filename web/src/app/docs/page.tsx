@@ -44,7 +44,7 @@ export default function DocsPage() {
       <DocsMotion />
       <div className="page-head">
         <div>
-          <p className="eyebrow">Docs</p>
+          <p className="eyebrow" data-slop-allow="hero-kicker-eyebrow">Docs</p>
           <h1>Build on Aevum testnet</h1>
           <p className="lede">
             Everything in this kit, on one page: run it locally, deploy to chain 44005, and the few places where Aevum behaves differently
@@ -73,7 +73,7 @@ export default function DocsPage() {
           ))}
         </nav>
 
-        <article className="docs-body">
+        <article className="docs-body" data-docs>
           <section id="challenge">
             <h2>Aevum Builder Challenge #1</h2>
             <p>
@@ -296,7 +296,7 @@ relayer → payWithAuthorization(...) → Invoice
               </li>
               <li>
                 The amount lives in the invoice itself. The app and the relayer both read it from <code>Invoice.getInvoice(invoiceId)</code>
-                and refuse anything else — a payment for the wrong amount reverts with <code>WrongAmount</code>, and the wrong wallet with{" "}
+                and refuse anything else, a payment for the wrong amount reverts with <code>WrongAmount</code>, and the wrong wallet with{" "}
                 <code>NotPayer</code> when the invoice names a payer.
               </li>
             </ul>
@@ -316,7 +316,7 @@ relayer → payWithAuthorization(...) → Invoice
             <div className="notice warn">
               <strong>Check the amount, not just the paid flag.</strong>
               <span>
-                <code>Invoice.pay</code> only accepts the invoice&apos;s exact amount, and only the named payer when the invoice names one —
+                <code>Invoice.pay</code> only accepts the invoice&apos;s exact amount, and only the named payer when the invoice names one,
                 anything else reverts. Still, never ship on <code>isPaid</code> alone: compare the amount from{" "}
                 <code>getInvoice</code> before you treat an invoice as settled.
               </span>

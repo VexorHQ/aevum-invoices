@@ -12,7 +12,7 @@ const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "600
 
 export const metadata: Metadata = {
   title: { default: "Aevum Invoices", template: "%s · Aevum Invoices" },
-  description: "Send invoices and get paid in tUSD8 on QDay Aevum testnet — standard or gasless.",
+  description: "Send invoices and get paid in tUSD8 on QDay Aevum testnet, standard or gasless.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

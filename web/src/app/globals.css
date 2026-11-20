@@ -69,6 +69,7 @@ body {
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 ::selection { background: #dce6f2; }
 a { color: var(--link); }
@@ -78,6 +79,8 @@ code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
 .num { font-variant-numeric: tabular-nums; }
 h1, h2, h3 { font-family: var(--font-display); color: var(--text); text-wrap: balance; margin: 0; }
 p { margin: 0; }
+/* Round 4 (anti-slop): even body copy wraps for readability, not raggedness. */
+p, li, figcaption, blockquote { text-wrap: pretty; }
 
 /* ---------- layout ---------- */
 .shell { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
@@ -132,9 +135,9 @@ h1 { font-size: clamp(30px, 5vw, 40px); line-height: 1.1; letter-spacing: -0.02e
 .metric-value small { font-size: 14px; color: var(--text-muted); font-weight: 600; }
 .metric-note { font-size: 13px; color: var(--text-faint); margin-top: 2px; }
 .metric.hero { background: var(--accent-soft); border-color: #bbf7d0; }
-.metric.hero .metric-label { color: #065f46; }
+.metric.hero .metric-label { color: var(--accent-text); }
 .metric.hero .metric-value { color: var(--accent-text); }
-.metric.hero .metric-note { color: #065f46; }
+.metric.hero .metric-note { color: var(--accent-text); }
 
 /* ---------- surfaces ---------- */
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; min-width: 0; box-shadow: var(--shadow-card); }
@@ -171,7 +174,7 @@ dl.kv dd { margin: 0; font-family: var(--font-mono); overflow-wrap: anywhere; co
 /* Ghost filter buttons — the toolbar holds tertiary actions, never solid primaries. */
 .filter-btn {
   display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 14px; font-weight: 500;
-  padding: 8px 14px; min-height: 36px; border-radius: var(--radius-btn); border: 1px solid transparent;
+  padding: 8px 14px; min-height: 36px; border-radius: var(--radius-btn);
   background: transparent; color: var(--text-muted); cursor: pointer;
   transition: background-color 150ms ease, color 150ms ease;
 }
@@ -259,7 +262,7 @@ input.field:disabled, textarea.field:disabled { opacity: 0.6; }
 .total small { font-size: 16px; color: var(--text-muted); font-weight: 600; }
 
 .notice { border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; border: 1px solid; }
-.notice.good { border-color: var(--good-line); background: var(--good-bg); color: #065f46; }
+.notice.good { border-color: var(--good-line); background: var(--good-bg); color: var(--good); }
 .notice.bad { border-color: var(--bad-line); background: var(--bad-bg); color: var(--bad); }
 .notice.warn { border-color: var(--warn-line); background: var(--warn-bg); color: var(--warn); }
 .notice strong { color: inherit; }
@@ -286,7 +289,10 @@ table.data td.right, table.data th.right { text-align: right; }
 .status.warn::before { background: var(--warn-dot); }
 
 .progress { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
-.progress > span { display: block; height: 100%; background: var(--navy); transition: width 0.2s ease; }
+/* Round 4 (anti-slop layout-prop-animation): the fill is a scaleX transform
+   (compositor-owned), never an animated width. The beam ::after rides the
+   span's right edge, so it still sits at the fill's leading edge. */
+.progress > span { display: block; width: 100%; height: 100%; background: var(--navy); transform-origin: left; transition: transform 0.2s ease; }
 
 .receipt-amount { font-family: var(--font-display); font-size: clamp(36px, 6vw, 52px); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: var(--text); }
 /* A receipt reads like paper: a navy rule on top, the rest plain ledger. */
@@ -309,7 +315,10 @@ table.data td.right, table.data th.right { text-align: right; }
 .docs-body ul, .docs-body ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
 .docs-body .card ul { margin: 0; }
 .docs-body .card .sub { margin: 4px 0 12px; }
-.docs-body :not(pre) > code { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
+/* Round 4: scoped by attribute, not by the article's class — a class-scoped
+   rule here would make the detector's class-based resolver read the article
+   itself as a card surface (false nested-cards hits on every docs callout). */
+[data-docs] :not(pre) > code { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
 pre.code { margin: 0; padding: 16px 18px; background: #0f172a; border: 1px solid #0f172a; border-radius: var(--radius-sm); overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; color: #e2e8f0; }
 pre.code code { font-size: inherit; }
 table.data.docs-table th[scope="row"] { width: 1%; font-size: 14px; color: var(--text); font-weight: 600; }
@@ -339,10 +348,13 @@ dl.faq dd { margin: 0; color: var(--text-2); line-height: 1.65; }
 .banner.info { border-bottom-color: var(--line-info); background: var(--surface-info); color: var(--navy); }
 .net-switch button:disabled { cursor: wait; opacity: 0.6; }
 
-/* Pre-submit checklist on the docs page: empty boxes to tick in your head. */
-.docs-body ul.checklist { list-style: none; padding-left: 0; }
-.docs-body ul.checklist li { position: relative; padding-left: 28px; }
-.docs-body ul.checklist li::before {
+/* Pre-submit checklist on the docs page: empty boxes to tick in your head.
+   Round 4: scoped by attribute, like the inline-code rule above — a
+   class-scoped rule here makes the detector's class-based resolver read the
+   article itself as a card surface (false nested-cards hits). */
+[data-docs] ul.checklist { list-style: none; padding-left: 0; }
+[data-docs] ul.checklist li { position: relative; padding-left: 28px; }
+[data-docs] ul.checklist li::before {
   content: ""; position: absolute; left: 0; top: 0.3em; width: 14px; height: 14px;
   border: 1.5px solid var(--text-faint); border-radius: 4px;
 }
@@ -378,7 +390,8 @@ table.data tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--navy)
 /* Buttons: press feedback + deeper hover shadow on the primary. */
 .btn { transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform var(--motion-fast) var(--ease-out), box-shadow var(--motion-base) var(--ease-out); }
 .btn:active { transform: translateY(1px); }
-.btn:hover { box-shadow: 0 4px 14px rgba(30, 58, 95, 0.18); }
+/* Round 4 (anti-slop dark-glow): the primary button's hover lift is the
+   background-color change alone — no chromatic halo behind it. */
 
 /* Activity timeline: vertical hairline + dots (green = paid, navy = created). */
 .timeline { list-style: none; margin: 0; padding: 0; position: relative; }
@@ -487,7 +500,7 @@ table.data tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--navy)
 
 /* D. Spotlight card — cursor glow in ::before (z-index -1, isolated). */
 .spotlight-card { position: relative; isolation: isolate; }
-.spotlight-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(30, 58, 95, 0.07), transparent 70%); opacity: 0; transition: opacity var(--motion-base) var(--ease-out); pointer-events: none; z-index: -1; }
+.spotlight-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: rgba(30, 58, 95, 0.07); opacity: 0; transition: opacity var(--motion-base) var(--ease-out); pointer-events: none; z-index: -1; }
 .spotlight-card:hover::before { opacity: 1; }
 .spotlight-card.card:hover, .spotlight-card.metric:hover { transform: translateY(-2px); }
 
@@ -499,7 +512,7 @@ table.data tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--navy)
 
 /* E. Toast — navy pill, bottom-center, spring entrance (see Toast.tsx). */
 .toast-viewport { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
-.toast { display: inline-flex; align-items: center; gap: 8px; background: var(--navy); color: #fff; font-size: 14px; font-weight: 500; padding: 10px 16px; border-radius: 999px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25); white-space: nowrap; }
+.toast { display: inline-flex; align-items: center; gap: 8px; background: var(--navy); color: #fff; font-size: 14px; font-weight: 500; padding: 10px 16px; border-radius: 999px; white-space: nowrap; }
 .toast svg { color: #6ee7b7; }
 
 /* F. Activity timeline — the vertical hairline draws itself in on mount. */
@@ -508,7 +521,7 @@ table.data tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--navy)
 
 /* F. Docs code copy button. */
 .code-wrap { position: relative; }
-.code-copy { position: absolute; top: 8px; right: 8px; display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 12px; font-weight: 600; color: #cbd5e1; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: background-color 150ms ease, color 150ms ease; }
+.code-copy { position: absolute; top: 8px; right: 8px; display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 12px; font-weight: 600; color: #cbd5e1; background: rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: background-color 150ms ease, color 150ms ease; }
 .code-copy:hover { background: rgba(255, 255, 255, 0.16); color: #fff; }
 
 /* F. Docs FAQ accordion. */

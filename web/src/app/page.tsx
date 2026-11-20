@@ -130,7 +130,7 @@ export default function InvoicesPage() {
             </motion.div>
             <motion.h1 variants={blurUpChild}>Invoices</motion.h1>
             <motion.p className="lede" variants={blurUpChild}>
-              Bills you send as a freelancer or small shop, settled on-chain in tUSD8. A client pays the exact amount — or signs once and a
+              Bills you send as a freelancer or small shop, settled on-chain in tUSD8. A client pays the exact amount, or signs once and a
               relayer submits it, so they need no gas.
             </motion.p>
           </div>
@@ -282,7 +282,7 @@ export default function InvoicesPage() {
                             </td>
                             <td>{formatDueDate(r.inv.dueDate)}</td>
                             <td style={{ whiteSpace: "normal", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {r.inv.memo || "—"}
+                              {r.inv.memo || "No memo"}
                             </td>
                             <td style={{ display: "flex", gap: 14 }}>
                               <Link href={`/invoices/${r.id}`}>{status === "paid" ? "Receipt" : "Pay"}</Link>

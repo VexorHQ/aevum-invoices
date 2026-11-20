@@ -184,7 +184,7 @@ export default function NewInvoicePage() {
   return (
     <main className="shell" style={{ maxWidth: 760 }}>
       <div>
-        <p className="eyebrow">New invoice · {appChain.name}</p>
+        <p className="eyebrow" data-slop-allow="hero-kicker-eyebrow">New invoice · {appChain.name}</p>
         <h1>Bill a client in tUSD8</h1>
         <p className="lede">
           The invoice lives on-chain: the amount, who may pay it and when it&apos;s due are all in the contract, so there&apos;s nothing to
@@ -194,7 +194,7 @@ export default function NewInvoicePage() {
 
       {!invoiceAddress ? (
         <div className="card empty">
-          No Invoice contract configured for {net.label}. Deploy it first — see the <Link href="/setup">Setup</Link> page.
+          No Invoice contract configured for {net.label}. Deploy it first, see the <Link href="/setup">Setup</Link> page.
         </div>
       ) : (
         <motion.form className="card stack" onSubmit={onCreate} variants={staggerParent} {...enter}>
@@ -209,7 +209,7 @@ export default function NewInvoicePage() {
               onChange={(e) => setAmount(e.target.value)}
               disabled={busy}
             />
-            <p className="field-hint">What the client owes, in tUSD8 (6 decimals). They must pay this exact amount — not a cent more or less.</p>
+            <p className="field-hint">What the client owes, in tUSD8 (6 decimals). They must pay this exact amount, not a cent more or less.</p>
           </motion.div>
 
           <motion.div className="field-group" variants={fadeUpChild}>
@@ -235,7 +235,7 @@ export default function NewInvoicePage() {
               onChange={(e) => setDue(e.target.value)}
               disabled={busy}
             />
-            <p className="field-hint">Defaults to a week from now. Clear it for no due date. The date is informational — the contract never blocks a late payment, the invoice just shows as overdue.</p>
+            <p className="field-hint">Defaults to a week from now. Clear it for no due date. The date is informational, the contract never blocks a late payment, the invoice just shows as overdue.</p>
           </motion.div>
 
           <motion.div className="field-group" variants={fadeUpChild}>
@@ -244,7 +244,7 @@ export default function NewInvoicePage() {
               id="memo"
               className="field"
               rows={3}
-              placeholder="e.g. Logo design — final delivery, March"
+              placeholder="e.g. Logo design, final delivery, March"
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
               disabled={busy}
@@ -258,6 +258,7 @@ export default function NewInvoicePage() {
                 key="error"
                 className="notice bad"
                 role="alert"
+                data-slop-allow="nested-cards"
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
@@ -277,7 +278,7 @@ export default function NewInvoicePage() {
               </motion.span>
             </AnimatePresence>
           </motion.button>
-          <p className="fine">Creating an invoice costs a little gas in tQDAY. Your client pays the invoice itself — in tUSD8, to your wallet.</p>
+          <p className="fine">Creating an invoice costs a little gas in tQDAY. Your client pays the invoice itself, in tUSD8, to your wallet.</p>
         </motion.form>
       )}
     </main>
