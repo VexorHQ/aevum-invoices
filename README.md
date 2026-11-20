@@ -11,6 +11,15 @@ Based on Aevum Starter Kit (MIT, PQA Labs).
 
 > **Judging counts activity on Aevum.** Contracts, payments and transfers must happen on Aevum testnet. Settling only on another chain (for example x402 on Base) doesn't count.
 
+## Live on Aevum testnet (deployed 20 Nov 2026)
+
+- **Invoice contract:** [`0x535Cb84930079C7Cc6e4201BDcE6e3a5e01432cD`](https://explorer-test.qday.info/address/0x535Cb84930079C7Cc6e4201BDcE6e3a5e01432cD) (chain `44005`, deploy block `3633638`)
+- **Deploy tx:** [`0x3b4b01530d57f75447e969efda4ebdbe7bbbb237791945275a0493393a0463b8`](https://explorer-test.qday.info/tx/0x3b4b01530d57f75447e969efda4ebdbe7bbbb237791945275a0493393a0463b8)
+- **Deployed from commit:** `f0b012f` — [source](https://github.com/VexorHQ/aevum-invoices/tree/f0b012fa2e138d7622baf9105a2423d55c4c36f3/contracts/src/Invoice.sol)
+- **First invoice, paid on-chain:** invoice `0x6d6d14c65f272fa0b731a3bb7b04c13d3097c7c0192459217b3acef94d6a2639` (1 tUSD8) — create [`0x84758cb504e7d5c2caee77c624c27c1c6a9f1c783f724f43eb7e869d4b5838d2`](https://explorer-test.qday.info/tx/0x84758cb504e7d5c2caee77c624c27c1c6a9f1c783f724f43eb7e869d4b5838d2) · pay [`0xdafc2b28b078e8aa0b8705107edcfd326601afa674e8a59e303f4d4efd9698d7`](https://explorer-test.qday.info/tx/0xdafc2b28b078e8aa0b8705107edcfd326601afa674e8a59e303f4d4efd9698d7) (`isPaid` = true)
+
+The explorer's contract verifier is not working yet, so the contract is not verified on the explorer — the address, the exact commit above, and these transaction hashes are the proof instead.
+
 ---
 
 ## Contents
