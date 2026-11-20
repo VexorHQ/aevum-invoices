@@ -6,8 +6,12 @@ import Link from "next/link";
 import { useState } from "react";
 import { formatUnits, getAbiItem, type PublicClient } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
+import { motion } from "motion/react";
 import { useToken } from "@/components/useToken";
 import { ReceiptIcon } from "@/components/Icons";
+import { CountUp } from "@/components/CountUp";
+import { VivusDraw } from "@/components/VivusDraw";
+import { fadeUpChild, staggerParent, useEnter } from "@/components/Reveal";
 import { useNetwork } from "@/lib/network";
 import { invoiceLabel, short } from "@/lib/invoice";
 
@@ -40,6 +44,7 @@ export default function ActivityPage() {
   const [windowSize, setWindowSize] = useState(5_000n);
   const [onlyMine, setOnlyMine] = useState(false);
   const [progress, setProgress] = useState(0);
+  const enter = useEnter();
 
   const logs = useQuery({
     queryKey: ["invoice-activity", appChain.id, invoiceAddress, windowSize.toString(), onlyMine ? address : null],
@@ -106,7 +111,9 @@ export default function ActivityPage() {
         </div>
         {logs.data && (
           <div className="score">
-            <span className="score-num">{logs.data.items.length}</span>
+            <span className="score-num">
+              <CountUp value={BigInt(logs.data.items.length)} decimals={0} />
+            </span>
             <span className="fine">
               events · {formatUnits(paidTotal, token.decimals)} {token.symbol} paid
             </span>
@@ -153,9 +160,9 @@ export default function ActivityPage() {
 
           {logs.data && logs.data.items.length === 0 && !logs.isFetching && (
             <div className="empty">
-              <span className="motif" aria-hidden="true">
+              <VivusDraw className="motif">
                 <ReceiptIcon />
-              </span>
+              </VivusDraw>
               <p>
                 No invoice activity in blocks {logs.data.from.toString()}–{logs.data.head.toString()}.{" "}
                 <Link href="/invoices/new">Create an invoice</Link>.
@@ -164,49 +171,45 @@ export default function ActivityPage() {
           )}
 
           {logs.data && logs.data.items.length > 0 && (
-            <div className="table-wrap">
-              <table className="data">
-                <thead>
-                  <tr>
-                    <th>Event</th>
-                    <th>Invoice</th>
-                    <th>From / To</th>
-                    <th className="right">Amount</th>
-                    <th className="right">Block</th>
-                    <th>Links</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {logs.data.items.map((l) => (
-                    <tr key={l.key}>
-                      <td>
-                        <span className={`status ${l.kind === "paid" ? "good" : ""}`}>{l.kind === "paid" ? "Paid" : "Created"}</span>
-                      </td>
-                      <td className="mono">
-                        <Link href={`/invoices/${l.invoiceId}`}>{invoiceLabel(l.invoiceId)}</Link>
-                      </td>
-                      <td className="mono">{short(l.kind === "paid" ? (l.payer ?? "") : (l.merchant ?? ""))}</td>
-                      <td className="right num">
+            <motion.ul className="timeline" variants={staggerParent} {...enter} key={`${windowSize.toString()}-${onlyMine}`}>
+              {logs.data.items.map((l) => (
+                <motion.li key={l.key} className="tl-item" variants={fadeUpChild}>
+                  <span className={`tl-dot ${l.kind}`} aria-hidden="true" />
+                  <div className="tl-body">
+                    <div className="tl-top">
+                      <span className={`status ${l.kind === "paid" ? "good" : ""}`}>{l.kind === "paid" ? "Paid" : "Created"}</span>
+                      <Link href={`/invoices/${l.invoiceId}`} className="mono">
+                        {invoiceLabel(l.invoiceId)}
+                      </Link>
+                      <span className="tl-amount num">
                         {formatUnits(l.amount, token.decimals)} {token.symbol}
-                      </td>
-                      <td className="right num">{l.blockNumber.toString()}</td>
-                      <td style={{ display: "flex", gap: 14 }}>
-                        {l.kind === "paid" ? (
-                          <Link href={`/receipts/${l.invoiceId}?tx=${l.tx}&chain=${appChain.id}`}>Receipt</Link>
-                        ) : (
-                          <Link href={`/invoices/${l.invoiceId}`}>Open</Link>
-                        )}
-                        {hasExplorer && l.tx && (
+                      </span>
+                    </div>
+                    <p className="tl-meta fine">
+                      {l.kind === "paid" ? (
+                        <>from <span className="mono">{short(l.payer ?? "")}</span></>
+                      ) : (
+                        <>by <span className="mono">{short(l.merchant ?? "")}</span></>
+                      )}{" "}
+                      · block {l.blockNumber.toString()} ·{" "}
+                      {l.kind === "paid" ? (
+                        <Link href={`/receipts/${l.invoiceId}?tx=${l.tx}&chain=${appChain.id}`}>Receipt ↗</Link>
+                      ) : (
+                        <Link href={`/invoices/${l.invoiceId}`}>Open ↗</Link>
+                      )}
+                      {hasExplorer && l.tx && (
+                        <>
+                          {" · "}
                           <a href={txUrl(l.tx)} target="_blank" rel="noreferrer">
-                            Tx
+                            Tx ↗
                           </a>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </motion.li>
+              ))}
+            </motion.ul>
           )}
         </section>
       )}

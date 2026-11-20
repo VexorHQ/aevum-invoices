@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import type { ReactNode } from "react";
 import { Header } from "@/components/Header";
 import { Providers } from "./providers";
+import { SmoothScroll } from "@/components/SmoothScroll";
 import "./globals.css";
 
 const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-plex", display: "swap" });
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
       <body>
         <Providers>
+          <SmoothScroll />
           <Header />
           {children}
         </Providers>

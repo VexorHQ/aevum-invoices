@@ -26,6 +26,13 @@ export const ReceiptMark = () => (
 );
 
 /** Empty-state motif: simple line-art receipt, domain-tied. */
+export const DrawnCheckIcon = ({ size = 56 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 56 56" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="28" cy="28" r="24" />
+    <path d="M17 29l7.5 7.5L39 21" />
+  </svg>
+);
+
 export const ReceiptIcon = ({ size = 56 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 56 56" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M16 6h24v44l-4-3-4 3-4-3-4 3-4-3-4 3V6z" />

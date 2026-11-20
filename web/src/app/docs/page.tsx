@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { links, TUSD8_ADDRESS } from "@aevum-kit/aevum";
 import { GitHubIcon } from "@/components/Icons";
+import { DocsMotion } from "@/components/DocsMotion";
+import { DocsTagline } from "@/components/DocsTagline";
 import { repoUrl } from "@/lib/env";
 
 export const metadata: Metadata = { title: "Docs" };
@@ -33,6 +35,7 @@ function Code({ children }: { children: string }) {
 export default function DocsPage() {
   return (
     <main className="shell">
+      <DocsMotion />
       <div className="page-head">
         <div>
           <p className="eyebrow">Docs</p>
@@ -41,6 +44,7 @@ export default function DocsPage() {
             Everything in this kit, on one page: run it locally, deploy to chain 44005, and the few places where Aevum behaves differently
             from Ethereum.
           </p>
+          <DocsTagline />
         </div>
         <a className="btn secondary" href={repoUrl} target="_blank" rel="noreferrer">
           <GitHubIcon />

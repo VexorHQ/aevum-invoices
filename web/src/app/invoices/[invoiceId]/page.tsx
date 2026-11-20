@@ -7,8 +7,10 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { formatUnits, isHex, type Hash, type Hex } from "viem";
 import { useAccount, useConfig, useReadContract } from "wagmi";
+import { motion, useReducedMotion } from "motion/react";
 import { readContract, signTypedData, simulateContract, waitForTransactionReceipt, writeContract } from "wagmi/actions";
 import { CheckIcon } from "@/components/Icons";
+import { Copyable } from "@/components/Copyable";
 import { useToken } from "@/components/useToken";
 import { useNetwork } from "@/lib/network";
 import { explain } from "@/lib/errors";
@@ -49,6 +51,7 @@ export default function InvoiceDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<Hash | null>(null);
   const [block, setBlock] = useState<bigint | null>(null);
+  const reduce = useReducedMotion();
 
   const invoice = useReadContract({
     address: invoiceAddress,
@@ -244,11 +247,15 @@ export default function InvoiceDetailPage() {
             </div>
             <dl className="kv" style={{ fontSize: 13 }}>
               <dt>Invoice id</dt>
-              <dd>{invoiceId}</dd>
+              <dd>
+                <Copyable value={invoiceId} />
+              </dd>
               <dt>Merchant</dt>
-              <dd>{inv.merchant}</dd>
+              <dd>
+                <Copyable value={inv.merchant} />
+              </dd>
               <dt>Payer</dt>
-              <dd>{inv.payer === ZERO_ADDRESS ? "Anyone can pay" : inv.payer}</dd>
+              <dd>{inv.payer === ZERO_ADDRESS ? "Anyone can pay" : <Copyable value={inv.payer} />}</dd>
               <dt>Due</dt>
               <dd>{formatDueDate(inv.dueDate)}</dd>
               {inv.memo && (
@@ -260,7 +267,9 @@ export default function InvoiceDetailPage() {
               {inv.paid && (
                 <>
                   <dt>Paid by</dt>
-                  <dd>{inv.paidBy}</dd>
+                  <dd>
+                    <Copyable value={inv.paidBy} />
+                  </dd>
                   <dt>Paid at</dt>
                   <dd>{new Date(Number(inv.paidAt) * 1000).toLocaleString()}</dd>
                 </>
@@ -316,24 +325,31 @@ export default function InvoiceDetailPage() {
                   ))}
                 </div>
 
-                <ol className="steps">
-                  {STEPS[mode].map((s, i) => {
-                    const done = step > i;
-                    const active = busy && step === i;
-                    return (
-                      <li key={s.title} className={`step ${done ? "done" : active ? "active" : ""}`}>
-                        <div className="step-dot">{done ? <CheckIcon /> : i + 1}</div>
-                        <div className="step-body">
-                          <div className="step-top">
-                            <span className="step-title">{s.title}</span>
-                            <span className="step-state">{done ? "Done" : active ? "In progress…" : "Waiting"}</span>
+                <motion.div
+                  key={mode}
+                  initial={reduce ? false : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <ol className="steps">
+                    {STEPS[mode].map((s, i) => {
+                      const done = step > i;
+                      const active = busy && step === i;
+                      return (
+                        <li key={s.title} className={`step ${done ? "done" : active ? "active" : ""}`}>
+                          <div className="step-dot">{done ? <CheckIcon /> : i + 1}</div>
+                          <div className="step-body">
+                            <div className="step-top">
+                              <span className="step-title">{s.title}</span>
+                              <span className="step-state">{done ? "Done" : active ? "In progress…" : "Waiting"}</span>
+                            </div>
+                            <p className="step-who">{s.who}</p>
                           </div>
-                          <p className="step-who">{s.who}</p>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ol>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </motion.div>
 
                 {notYourInvoice && (
                   <div className="notice warn" role="status">

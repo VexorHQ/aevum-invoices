@@ -3,7 +3,10 @@
 import { links, TUSD8_ADDRESS, erc20Abi } from "@aevum-kit/aevum";
 import { formatEther, formatUnits } from "viem";
 import { useAccount, useBalance, useBytecode, useReadContract, useWatchAsset } from "wagmi";
+import { motion } from "motion/react";
 import { CheckIcon, CrossIcon, WarnIcon } from "@/components/Icons";
+import { CountUp } from "@/components/CountUp";
+import { fadeUpChild, staggerParent, useEnter } from "@/components/Reveal";
 import { useToken } from "@/components/useToken";
 import { useNetwork } from "@/lib/network";
 import { short } from "@/lib/invoice";
@@ -97,6 +100,7 @@ export default function SetupPage() {
 
   const passed = checks.filter((c) => c.status === "ok").length;
   const left = checks.length - passed;
+  const enter = useEnter();
 
   return (
     <main className="shell">
@@ -108,7 +112,7 @@ export default function SetupPage() {
         </div>
         <div className="score" aria-live="polite">
           <span className="score-num">
-            {passed}
+            <CountUp value={BigInt(passed)} decimals={0} />
             <small> / {checks.length}</small>
           </span>
           <span style={{ fontSize: 13, fontWeight: 600, color: left ? "var(--warn)" : "var(--good)" }}>
@@ -118,9 +122,9 @@ export default function SetupPage() {
       </section>
 
       <section className="grid-2" aria-label="Checks">
-        <div className="card flush">
+        <motion.div className="card flush" variants={staggerParent} {...enter}>
           {checks.map((c) => (
-            <div className="check" key={c.title}>
+            <motion.div className="check" key={c.title} variants={fadeUpChild}>
               <div className={`chip ${c.status}`}>
                 {c.status === "ok" ? <CheckIcon /> : c.status === "bad" ? <CrossIcon /> : c.status === "warn" ? <WarnIcon /> : null}
               </div>
@@ -144,9 +148,9 @@ export default function SetupPage() {
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         <div className="stack">
           <div className="card">

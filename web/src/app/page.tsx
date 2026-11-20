@@ -6,8 +6,13 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { formatUnits, getAbiItem, type Hex, type PublicClient } from "viem";
 import { usePublicClient } from "wagmi";
+import { motion } from "motion/react";
 import { useToken } from "@/components/useToken";
 import { ReceiptIcon } from "@/components/Icons";
+import { CountUp } from "@/components/CountUp";
+import { HeroParticles } from "@/components/HeroParticles";
+import { VivusDraw } from "@/components/VivusDraw";
+import { fadeUpChild, staggerParent, useEnter } from "@/components/Reveal";
 import { useNetwork } from "@/lib/network";
 import { formatDueDate, invoiceLabel, parseInvoiceData, short, statusOf, type InvoiceData, type InvoiceStatus } from "@/lib/invoice";
 
@@ -97,21 +102,36 @@ export default function InvoicesPage() {
   const openTotal = rows.filter((r) => statusOf(r.inv) !== "paid").reduce((s, r) => s + r.inv.amount, 0n);
   const paidTotal = rows.filter((r) => statusOf(r.inv) === "paid").reduce((s, r) => s + r.inv.amount, 0n);
   const unpaidCount = counts.open + counts.overdue;
+  const enter = useEnter();
+  const totalValue = paidTotal + openTotal;
+  const paidShare = totalValue > 0n ? Number((paidTotal * 100n) / totalValue) : 0;
+  const openShare = totalValue > 0n ? 100 - paidShare : 0;
 
   return (
     <main className="shell">
-      <div className="page-head">
-        <div>
-          <p className="eyebrow">Aevum testnet · tUSD8</p>
-          <h1>Invoices</h1>
-          <p className="lede">
-            Bills you send as a freelancer or small shop, settled on-chain in tUSD8. A client pays the exact amount — or signs once and a
-            relayer submits it, so they need no gas.
-          </p>
+      <div className="hero-band">
+        <HeroParticles />
+        <div className="page-head">
+          <div>
+            <div className="head-eyebrow-row">
+              <p className="eyebrow">Aevum testnet · tUSD8</p>
+              {invoices.data && (
+                <span className="live-chip">
+                  <span className="live-dot" aria-hidden="true" />
+                  Live · block {invoices.data.head.toString()}
+                </span>
+              )}
+            </div>
+            <h1>Invoices</h1>
+            <p className="lede">
+              Bills you send as a freelancer or small shop, settled on-chain in tUSD8. A client pays the exact amount — or signs once and a
+              relayer submits it, so they need no gas.
+            </p>
+          </div>
+          <Link className="btn" href="/invoices/new">
+            New invoice
+          </Link>
         </div>
-        <Link className="btn" href="/invoices/new">
-          New invoice
-        </Link>
       </div>
 
       {!invoiceAddress ? (
@@ -123,17 +143,20 @@ export default function InvoicesPage() {
       ) : (
         <>
           {invoices.data && (
-            <div className="metrics" aria-label="Invoice totals">
-              <div className="metric hero">
+            <motion.div className="metrics" aria-label="Invoice totals" variants={staggerParent} {...enter}>
+              <motion.div className="metric hero" variants={fadeUpChild}>
                 <div className="metric-label">Paid in</div>
                 <div className="metric-value">
-                  {formatUnits(paidTotal, token.decimals)} <small>{token.symbol}</small>
+                  <CountUp value={paidTotal} decimals={token.decimals} symbol={token.symbol} />
                 </div>
                 <div className="metric-note">
                   {counts.paid} invoice{counts.paid === 1 ? "" : "s"} settled on-chain
                 </div>
-              </div>
-              <div className="metric">
+                <div className="share" title={`${paidShare}% of invoiced value settled`}>
+                  <span style={{ width: `${paidShare}%` }} />
+                </div>
+              </motion.div>
+              <motion.div className="metric" variants={fadeUpChild}>
                 <div className="metric-label">Still open</div>
                 <div className="metric-value">
                   {formatUnits(openTotal, token.decimals)} <small>{token.symbol}</small>
@@ -141,18 +164,21 @@ export default function InvoicesPage() {
                 <div className="metric-note">
                   across {unpaidCount} unpaid invoice{unpaidCount === 1 ? "" : "s"}
                 </div>
-              </div>
-              <div className="metric">
+                <div className="share navy" title={`${openShare}% of invoiced value still open`}>
+                  <span style={{ width: `${openShare}%` }} />
+                </div>
+              </motion.div>
+              <motion.div className="metric" variants={fadeUpChild}>
                 <div className="metric-label">Open invoices</div>
                 <div className="metric-value">{counts.open}</div>
                 <div className="metric-note">awaiting payment</div>
-              </div>
-              <div className="metric">
+              </motion.div>
+              <motion.div className="metric" variants={fadeUpChild}>
                 <div className="metric-label">Overdue</div>
                 <div className="metric-value">{counts.overdue}</div>
                 <div className="metric-note">past due, still payable</div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           )}
           <section className="card flush" aria-label="Invoices">
           <div
@@ -186,9 +212,9 @@ export default function InvoicesPage() {
 
           {invoices.data && rows.length === 0 && !invoices.isFetching && (
             <div className="empty">
-              <span className="motif" aria-hidden="true">
+              <VivusDraw className="motif">
                 <ReceiptIcon />
-              </span>
+              </VivusDraw>
               <p>
                 No invoices yet in blocks {invoices.data.from.toString()}–{invoices.data.head.toString()}.{" "}
                 <Link href="/invoices/new">Send your first one</Link>.
@@ -210,11 +236,11 @@ export default function InvoicesPage() {
                     <th>Links</th>
                   </tr>
                 </thead>
-                <tbody>
+                <motion.tbody key={filter} variants={staggerParent} {...enter}>
                   {shown.map((r) => {
                     const status = statusOf(r.inv);
                     return (
-                      <tr key={r.id}>
+                      <motion.tr key={r.id} variants={fadeUpChild}>
                         <td className="mono">
                           <Link href={`/invoices/${r.id}`}>{invoiceLabel(r.id)}</Link>
                         </td>
@@ -239,10 +265,10 @@ export default function InvoicesPage() {
                             </a>
                           )}
                         </td>
-                      </tr>
+                      </motion.tr>
                     );
                   })}
-                </tbody>
+                </motion.tbody>
               </table>
             </div>
           )}

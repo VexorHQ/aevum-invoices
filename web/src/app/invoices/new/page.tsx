@@ -5,8 +5,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { isAddress, parseEventLogs, parseUnits, type Hash, type Hex } from "viem";
 import { useAccount, useConfig } from "wagmi";
+import { motion } from "motion/react";
 import { simulateContract, waitForTransactionReceipt, writeContract } from "wagmi/actions";
 import { useToken } from "@/components/useToken";
+import { Copyable } from "@/components/Copyable";
+import { DrawnCheckIcon } from "@/components/Icons";
+import { VivusDraw } from "@/components/VivusDraw";
+import { fadeUpChild, staggerParent, useEnter } from "@/components/Reveal";
 import { useNetwork } from "@/lib/network";
 import { explain } from "@/lib/errors";
 import { invoiceLabel, toLocalInputValue, ZERO_ADDRESS } from "@/lib/invoice";
@@ -34,6 +39,7 @@ export default function NewInvoicePage() {
   const [error, setError] = useState<string | null>(null);
   const [invoiceId, setInvoiceId] = useState<Hex | null>(null);
   const [txHash, setTxHash] = useState<Hash | null>(null);
+  const enter = useEnter();
 
   function validate(): string | null {
     if (!amount.trim()) return "Enter an amount.";
@@ -111,6 +117,11 @@ export default function NewInvoicePage() {
   if (phase === "done" && invoiceId) {
     return (
       <main className="shell" style={{ maxWidth: 760 }}>
+        <div className="success-mark">
+          <VivusDraw start="autostart">
+            <DrawnCheckIcon />
+          </VivusDraw>
+        </div>
         <p className="eyebrow">Invoice created</p>
         <h1>Invoice {invoiceLabel(invoiceId)} is live</h1>
         <p className="lede">
@@ -120,7 +131,9 @@ export default function NewInvoicePage() {
         <section className="card stack">
           <dl className="kv">
             <dt>Invoice id</dt>
-            <dd>{invoiceId}</dd>
+            <dd>
+              <Copyable value={invoiceId} />
+            </dd>
             <dt>Amount</dt>
             <dd>
               {amount.trim()} {token.symbol}
@@ -136,7 +149,9 @@ export default function NewInvoicePage() {
             {txHash && (
               <>
                 <dt>Transaction</dt>
-                <dd>{txHash}</dd>
+                <dd>
+                  <Copyable value={txHash} />
+                </dd>
               </>
             )}
           </dl>
@@ -181,8 +196,8 @@ export default function NewInvoicePage() {
           No Invoice contract configured for {net.label}. Deploy it first — see the <Link href="/setup">Setup</Link> page.
         </div>
       ) : (
-        <form className="card stack" onSubmit={onCreate}>
-          <div className="field-group">
+        <motion.form className="card stack" onSubmit={onCreate} variants={staggerParent} {...enter}>
+          <motion.div className="field-group" variants={fadeUpChild}>
             <label htmlFor="amount">Amount ({token.symbol})</label>
             <input
               id="amount"
@@ -194,9 +209,9 @@ export default function NewInvoicePage() {
               disabled={busy}
             />
             <p className="field-hint">What the client owes, in tUSD8 (6 decimals). They must pay this exact amount — not a cent more or less.</p>
-          </div>
+          </motion.div>
 
-          <div className="field-group">
+          <motion.div className="field-group" variants={fadeUpChild}>
             <label htmlFor="payer">Payer address (optional)</label>
             <input
               id="payer"
@@ -207,9 +222,9 @@ export default function NewInvoicePage() {
               disabled={busy}
             />
             <p className="field-hint">Fill this in when the bill is for one specific wallet. Blank means anyone can settle it.</p>
-          </div>
+          </motion.div>
 
-          <div className="field-group">
+          <motion.div className="field-group" variants={fadeUpChild}>
             <label htmlFor="due">Due date</label>
             <input
               id="due"
@@ -220,9 +235,9 @@ export default function NewInvoicePage() {
               disabled={busy}
             />
             <p className="field-hint">Defaults to a week from now. Clear it for no due date. The date is informational — the contract never blocks a late payment, the invoice just shows as overdue.</p>
-          </div>
+          </motion.div>
 
-          <div className="field-group">
+          <motion.div className="field-group" variants={fadeUpChild}>
             <label htmlFor="memo">Memo</label>
             <textarea
               id="memo"
@@ -234,7 +249,7 @@ export default function NewInvoicePage() {
               disabled={busy}
             />
             <p className="field-hint">What the payment is for. Stored on-chain with the invoice.</p>
-          </div>
+          </motion.div>
 
           {error && (
             <div className="notice bad" role="alert">
@@ -247,7 +262,7 @@ export default function NewInvoicePage() {
             {cta}
           </button>
           <p className="fine">Creating an invoice costs a little gas in tQDAY. Your client pays the invoice itself — in tUSD8, to your wallet.</p>
-        </form>
+        </motion.form>
       )}
     </main>
   );

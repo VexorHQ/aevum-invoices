@@ -7,6 +7,9 @@ import { Suspense, useEffect, useState } from "react";
 import { formatUnits, getAbiItem, isHash, isHex, parseEventLogs, type Hex, type PublicClient } from "viem";
 import { useReadContract, usePublicClient, useTransactionReceipt } from "wagmi";
 import { useToken } from "@/components/useToken";
+import { Copyable } from "@/components/Copyable";
+import { DrawnCheckIcon } from "@/components/Icons";
+import { VivusDraw } from "@/components/VivusDraw";
 import { networkByChainId } from "@/lib/env";
 import { useNetwork } from "@/lib/network";
 import { invoiceExists, invoiceLabel, parseInvoiceData } from "@/lib/invoice";
@@ -97,6 +100,11 @@ function ReceiptBody() {
           </div>
         ) : (
           <>
+            <div className="paid-mark">
+              <VivusDraw start="autostart">
+                <DrawnCheckIcon />
+              </VivusDraw>
+            </div>
             <div className="check-top" style={{ alignItems: "center" }}>
               <span className="status good">Paid</span>
               <span className="fine">{inv.paidAt ? new Date(Number(inv.paidAt) * 1000).toLocaleString() : ""}</span>
@@ -106,13 +114,21 @@ function ReceiptBody() {
             </div>
             <dl className="kv">
               <dt>Invoice id</dt>
-              <dd>{invoiceId}</dd>
+              <dd>
+                <Copyable value={invoiceId} />
+              </dd>
               <dt>Merchant</dt>
-              <dd>{hasExplorer ? <a href={addressUrl(inv.merchant)} target="_blank" rel="noreferrer">{inv.merchant}</a> : inv.merchant}</dd>
+              <dd>
+                <Copyable value={inv.merchant} href={hasExplorer ? addressUrl(inv.merchant) : undefined} />
+              </dd>
               <dt>Payer</dt>
-              <dd>{hasExplorer ? <a href={addressUrl(inv.paidBy)} target="_blank" rel="noreferrer">{inv.paidBy}</a> : inv.paidBy}</dd>
+              <dd>
+                <Copyable value={inv.paidBy} href={hasExplorer ? addressUrl(inv.paidBy) : undefined} />
+              </dd>
               <dt>Invoice contract</dt>
-              <dd>{invoiceAddress}</dd>
+              <dd>
+                <Copyable value={invoiceAddress} />
+              </dd>
               {inv.memo && (
                 <>
                   <dt>Memo</dt>
@@ -126,9 +142,13 @@ function ReceiptBody() {
                   <dt>Gas used</dt>
                   <dd>{receipt.data.gasUsed.toString()}</dd>
                   <dt>Submitted by</dt>
-                  <dd>{receipt.data.from}</dd>
+                  <dd>
+                    <Copyable value={receipt.data.from} />
+                  </dd>
                   <dt>Transaction</dt>
-                  <dd>{hasExplorer ? <a href={txUrl(tx!)} target="_blank" rel="noreferrer">{tx}</a> : tx}</dd>
+                  <dd>
+                    <Copyable value={tx!} href={hasExplorer ? txUrl(tx!) : undefined} />
+                  </dd>
                 </>
               )}
             </dl>
@@ -188,14 +208,7 @@ function ChainReceiptNote({ invoiceId, client, invoiceAddress }: { invoiceId: He
   if (!tx) return null;
   return (
     <p className="fine">
-      Payment transaction:{" "}
-      {net.hasExplorer ? (
-        <a href={txUrl(tx)} target="_blank" rel="noreferrer">
-          {tx}
-        </a>
-      ) : (
-        tx
-      )}
+      Payment transaction: <Copyable value={tx} href={net.hasExplorer ? txUrl(tx) : undefined} />
     </p>
   );
 }
